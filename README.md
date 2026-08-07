@@ -37,3 +37,14 @@ npm run build:pages
 ```
 
 O deploy do GitHub Pages é executado automaticamente pelo workflow em `.github/workflows/pages.yml`.
+
+### Cloudflare Pages
+
+Para publicar o mesmo build no Cloudflare Pages, use:
+
+- Framework preset: `React (Vite)`
+- Build command: `npm run build:pages`
+- Build output directory: `pages-dist`
+- Root directory: `/`
+
+O caminho dos assets é `/ClimaMin/` no GitHub Pages e `/` por padrão no Cloudflare Pages.
