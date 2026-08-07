@@ -1,8 +1,16 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ControlModule, controlTabs } from "./control-module";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
+
+const controlRouteSlug = (label: string) => label
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-|-$/g, "");
 
 type Metric = {
   label: string;
@@ -535,12 +543,24 @@ const agents: Agent[] = [
 ];
 
 const scenarioStages = [
-  { label: "Normal", time: "T−72h", note: "Operação dentro dos limites", tone: "ok" as Tone },
-  { label: "Vigilância", time: "T−24h", note: "Ensemble mudou materialmente", tone: "info" as Tone },
-  { label: "Atenção", time: "T−12h", note: "Impacto provável em drenagem", tone: "watch" as Tone },
-  { label: "Alerta", time: "T−2h", note: "Protocolos preventivos ativados", tone: "alert" as Tone },
-  { label: "Incidente", time: "T0", note: "Nível confirmado por sensores", tone: "critical" as Tone },
-  { label: "Recuperação", time: "T+24h", note: "Vistoria e retomada gradual", tone: "ok" as Tone },
+  { label: "Normal", time: "T+00", note: "Capacidade 97%", tone: "ok" as Tone },
+  { label: "Nova previsão", time: "T+10", note: "ECMWF 12Z processado", tone: "info" as Tone },
+  { label: "Mudança", time: "T+20", note: "AURORA detecta materialidade", tone: "info" as Tone },
+  { label: "Modelo", time: "T+25", note: "H2D v4.3 em execução", tone: "watch" as Tone },
+  { label: "Impacto", time: "T+35", note: "D-04 e C17 expostos", tone: "watch" as Tone },
+  { label: "Sinal", time: "T+40", note: "S-482 publicado", tone: "watch" as Tone },
+  { label: "Alerta", time: "T+50", note: "AL-0187 em análise", tone: "alert" as Tone },
+  { label: "Decisão", time: "T+60", note: "DEC-0248 criada", tone: "alert" as Tone },
+  { label: "Despacho", time: "T+70", note: "WF-CTRL-02 iniciado", tone: "info" as Tone },
+  { label: "Campo", time: "T+85", note: "Equipe aceita vistoria", tone: "info" as Tone },
+  { label: "Sensor", time: "T+90", note: "Nível aumenta 14 cm", tone: "alert" as Tone },
+  { label: "Alagamento", time: "T+105", note: "Geofence confirmado", tone: "critical" as Tone },
+  { label: "Restrição", time: "T+110", note: "C17 opera a 82%", tone: "critical" as Tone },
+  { label: "Reotimização", time: "T+125", note: "Plano recalculado", tone: "watch" as Tone },
+  { label: "Mitigação", time: "T+140", note: "BM-07 estabiliza nível", tone: "info" as Tone },
+  { label: "Recuperação", time: "T+160", note: "Vistoria e retomada", tone: "ok" as Tone },
+  { label: "Resultado", time: "T+170", note: "R$ 7,3 mi preservados", tone: "ok" as Tone },
+  { label: "Encerramento", time: "T+180", note: "Briefing automático", tone: "ok" as Tone },
 ];
 
 const baseFeed: FeedItem[] = [
@@ -552,21 +572,35 @@ const baseFeed: FeedItem[] = [
 ];
 
 const scenarioFeed: Record<number, { agent: string; text: string; type: Tone }> = {
-  1: { agent: "NIMBUS", text: "Nova rodada: probabilidade de chuva >150 mm subiu para 72%.", type: "info" },
-  2: { agent: "HYDRA", text: "Pré-check aprovado; modelo hidráulico P90 iniciado com maré elevada.", type: "watch" },
-  3: { agent: "PULSO", text: "Protocolos preventivos criados: 7 tarefas, 2 comunicações e 3 vistorias.", type: "alert" },
-  4: { agent: "AURORA", text: "Modo incidente N2 ativado; imagem operacional comum sincronizada.", type: "critical" },
-  5: { agent: "RECUPERA", text: "Sequência de inspeção e retomada preparada; 5 dependências críticas.", type: "ok" },
+  1: { agent: "NIMBUS", text: "ECMWF 12Z recebido; chuva prevista passou de 48 para 73 mm.", type: "info" },
+  2: { agent: "AURORA", text: "Mudança material detectada em D-04, Pátio Norte e C17.", type: "info" },
+  3: { agent: "HYDRA", text: "Pré-check aprovado; H2D v4.3 iniciado com maré elevada.", type: "watch" },
+  4: { agent: "ATLAS", text: "Impacto IA-0041: 7 ativos e 3 processos dependentes expostos.", type: "watch" },
+  5: { agent: "AURORA", text: "Sinal S-482 publicado com relevância alta e contexto espacial.", type: "watch" },
+  6: { agent: "SENTINELA", text: "AL-0187 preparado; redundância NIV-D04-02 validada.", type: "alert" },
+  7: { agent: "PRISMA", text: "DEC-0248 criada com três alternativas e trade-offs.", type: "alert" },
+  8: { agent: "PULSO", text: "WF-CTRL-02 iniciado: 4 jobs, 3 equipes e SLA crítico.", type: "info" },
+  9: { agent: "CAMPO", text: "HSE-02 aceitou VS-204 e iniciou navegação ao acesso norte.", type: "info" },
+  10: { agent: "SENTINELA", text: "Nível D-04 subiu 14 cm; confiança reduzida para 68%.", type: "alert" },
+  11: { agent: "AURORA", text: "Geofence de alagamento confirmado; modo incidente N2 ativado.", type: "critical" },
+  12: { agent: "ATLAS", text: "C17 restrita a 82%; Usina 3 e MV Atlas recalculados.", type: "critical" },
+  13: { agent: "PRISMA", text: "Plano reotimizado preserva 9,2 kt e reduz demurrage.", type: "watch" },
+  14: { agent: "PULSO", text: "BM-07 operacional; nível estabilizado por 18 minutos.", type: "info" },
+  15: { agent: "CAMPO", text: "Vistoria aprovada; sequência de retomada liberada pelo gestor.", type: "ok" },
+  16: { agent: "VALOR", text: "Resultado: R$ 8,4 mi potencial, R$ 1,1 mi realizado, R$ 7,3 mi preservado.", type: "ok" },
+  17: { agent: "LEDGER", text: "Briefing e cadeia de evidências encerrados sem pendências.", type: "ok" },
 };
 
 function ArcGISMap({
   activeWorkspace,
   layerVisibility,
   onMapStatus,
+  onAssetSelect,
 }: {
   activeWorkspace: Workspace;
   layerVisibility: Record<string, boolean>;
   onMapStatus: (value: string) => void;
+  onAssetSelect?: (assetId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const layerRefs = useRef<Record<string, any>>({});
@@ -575,6 +609,7 @@ function ArcGISMap({
   useEffect(() => {
     let cancelled = false;
     let retry = 0;
+    let clickHandle: { remove?: () => void } | null = null;
 
     const setup = async () => {
       if (cancelled || !containerRef.current) return;
@@ -611,22 +646,22 @@ function ArcGISMap({
         async () => {
           if (cancelled) return;
           try {
-            const [GraphicsLayer, Graphic, FeatureLayer, ImageryTileLayer] = await arcgis.import([
+            const [GraphicsLayer, Graphic, FeatureLayer, ImageryLayer] = await arcgis.import([
               "@arcgis/core/layers/GraphicsLayer.js",
               "@arcgis/core/Graphic.js",
               "@arcgis/core/layers/FeatureLayer.js",
-              "@arcgis/core/layers/ImageryTileLayer.js",
+              "@arcgis/core/layers/ImageryLayer.js",
             ]);
 
             const assetLayer = new GraphicsLayer({ title: "Ativos críticos · Vale" });
             const riskLayer = new GraphicsLayer({ title: "Impacto simulado P90" });
             const assets = [
-              { name: "Terminal Marítimo · Berço 2", x: -40.242, y: -20.282, state: "Atenção", color: [242, 164, 61, 1] },
-              { name: "Pátio Norte", x: -40.252, y: -20.279, state: "Normal", color: [48, 203, 169, 1] },
-              { name: "Usina 7", x: -40.261, y: -20.276, state: "Normal", color: [48, 203, 169, 1] },
-              { name: "Bomba D-04", x: -40.250, y: -20.288, state: "Restrita", color: [239, 105, 93, 1] },
-              { name: "Subestação SE-03", x: -40.247, y: -20.286, state: "Vigilância", color: [81, 184, 219, 1] },
-              { name: "Acesso Norte", x: -40.267, y: -20.292, state: "Atenção", color: [242, 164, 61, 1] },
+              { id: "MV-ATLAS", name: "Terminal Marítimo · Berço 2", x: -40.242, y: -20.282, state: "Atenção", capacity: "Janela +3h20", color: [242, 164, 61, 1] },
+              { id: "PATIO-N", name: "Pátio Norte", x: -40.252, y: -20.279, state: "Vigilância", capacity: "91%", color: [242, 164, 61, 1] },
+              { id: "PEL-03", name: "Usina 3", x: -40.261, y: -20.276, state: "Normal", capacity: "92%", color: [48, 203, 169, 1] },
+              { id: "D04", name: "Drenagem D-04", x: -40.250, y: -20.288, state: "Restrita", capacity: "2,3 m³/s", color: [239, 105, 93, 1] },
+              { id: "SE-04", name: "Subestação SE-04", x: -40.247, y: -20.286, state: "Atenção", capacity: "Carga 83%", color: [242, 164, 61, 1] },
+              { id: "CONV-C17", name: "Correia C17", x: -40.255, y: -20.284, state: "Atenção", capacity: "2.300 t/h", color: [242, 164, 61, 1] },
             ];
 
             assets.forEach((asset) => {
@@ -640,10 +675,10 @@ function ArcGISMap({
                     size: 11,
                     outline: { color: [255, 255, 255, 0.95], width: 1.4 },
                   },
-                  attributes: { Nome: asset.name, Estado: asset.state, Workspace: activeWorkspace.title },
+                  attributes: { AssetId: asset.id, Nome: asset.name, Estado: asset.state, Capacidade: asset.capacity, Workspace: activeWorkspace.title },
                   popupTemplate: {
                     title: "{Nome}",
-                    content: [{ type: "fields", fieldInfos: [{ fieldName: "Estado" }, { fieldName: "Workspace" }] }],
+                    content: [{ type: "fields", fieldInfos: [{ fieldName: "Estado" }, { fieldName: "Capacidade" }, { fieldName: "Workspace" }] }],
                   },
                 }),
               );
@@ -674,8 +709,8 @@ function ArcGISMap({
               visible: layerVisibility.viirs,
               opacity: 0.85,
             });
-            const landCover = new ImageryTileLayer({
-              portalItem: { id: "cfcb7609de5f478eb7666240902d4d3d" },
+            const landCover = new ImageryLayer({
+              url: "https://ic.imagery1.arcgis.com/arcgis/rest/services/Sentinel2_10m_LandCover/ImageServer",
               title: "Sentinel-2 Land Cover 10 m · Living Atlas",
               visible: layerVisibility.landCover,
               opacity: 0.5,
@@ -685,6 +720,15 @@ function ArcGISMap({
             riskLayer.visible = layerVisibility.risk;
             layerRefs.current = { assets: assetLayer, risk: riskLayer, viirs, landCover };
             mapEl.map.addMany([landCover, viirs, riskLayer, assetLayer]);
+
+            if (mapEl.view?.on && onAssetSelect) {
+              clickHandle = mapEl.view.on("click", async (event: unknown) => {
+                const response = await mapEl.view.hitTest(event);
+                const hit = response?.results?.find((result: any) => result.graphic?.layer === assetLayer);
+                const assetId = hit?.graphic?.attributes?.AssetId;
+                if (assetId) onAssetSelect(String(assetId));
+              });
+            }
 
             const settled = await Promise.allSettled([viirs.load(), landCover.load()]);
             const loaded = settled.filter((item) => item.status === "fulfilled").length;
@@ -700,10 +744,11 @@ function ArcGISMap({
     setup();
     return () => {
       cancelled = true;
+      clickHandle?.remove?.();
       if (mapElementRef.current?.destroy) mapElementRef.current.destroy();
       layerRefs.current = {};
     };
-  }, [activeWorkspace.key, onMapStatus]);
+  }, [activeWorkspace.key, onMapStatus, onAssetSelect]);
 
   useEffect(() => {
     Object.entries(layerVisibility).forEach(([key, visible]) => {
@@ -740,7 +785,7 @@ function MiniBars({ values, tone = "info" }: { values: number[]; tone?: Tone }) 
 
 export default function Home() {
   const [activeKey, setActiveKey] = useState("control");
-  const [subview, setSubview] = useState("Visão geral");
+  const [subview, setSubview] = useState("Situação integrada");
   const [scenarioStep, setScenarioStep] = useState(2);
   const [scenarioRunning, setScenarioRunning] = useState(false);
   const [speed, setSpeed] = useState(10);
@@ -756,11 +801,31 @@ export default function Home() {
   const [now, setNow] = useState(new Date("2026-08-07T13:32:10-03:00"));
   const [layers, setLayers] = useState<Record<string, boolean>>({ assets: true, risk: true, viirs: false, landCover: false });
   const [scenarioName, setScenarioName] = useState("Chuva extrema + maré elevada");
+  const [horizon, setHorizon] = useState("+24H");
+  const [profile, setProfile] = useState("Executivo");
+  const [selectedAsset, setSelectedAsset] = useState("D04");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const lastScenarioFeed = useRef(2);
 
   const active = useMemo(() => workspaces.find((item) => item.key === activeKey) ?? workspaces[0], [activeKey]);
   const catalogModule = useMemo(() => workspaces.find((item) => item.key === catalogKey) ?? workspaces[0], [catalogKey]);
   const stage = scenarioStages[scenarioStep];
+
+  useEffect(() => {
+    const route = window.location.hash.replace(/^#control\//, "");
+    if (!route || route === window.location.hash) return;
+    const matchedTab = controlTabs.find((tab) => controlRouteSlug(tab) === route);
+    if (matchedTab) {
+      setActiveKey("control");
+      setSubview(matchedTab);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeKey !== "control") return;
+    window.history.replaceState(null, "", `#control/${controlRouteSlug(subview)}`);
+  }, [activeKey, subview]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow((value) => new Date(value.getTime() + 1000 * speed)), 1000);
@@ -792,7 +857,7 @@ export default function Home() {
         ...items,
       ].slice(0, 8));
     }
-    if (scenarioStep === 4) setIncidentMode(true);
+    if (scenarioStep === 11) setIncidentMode(true);
   }, [scenarioStep, now]);
 
   useEffect(() => {
@@ -811,7 +876,7 @@ export default function Home() {
 
   const selectWorkspace = (key: string) => {
     setActiveKey(key);
-    setSubview("Visão geral");
+    setSubview(key === "control" ? "Situação integrada" : "Visão geral");
   };
 
   const approveDecision = () => {
@@ -820,8 +885,8 @@ export default function Home() {
       id: Date.now(),
       time: now.toLocaleTimeString("pt-BR", { hour12: false }),
       agent: "PULSO",
-      text: "DEC-284 aprovada. Sete tarefas publicadas e confirmações iniciadas.",
-      type: "ok",
+      text: "DEC-0248 aprovada. WF-CTRL-02 publicado e confirmações iniciadas.",
+      type: "ok" as Tone,
     }, ...items].slice(0, 8));
     setToast("Decisão aprovada · plano e tarefas publicados");
   };
@@ -835,7 +900,7 @@ export default function Home() {
       time: now.toLocaleTimeString("pt-BR", { hour12: false }),
       agent: "PULSO",
       text: `Despacho criado para ${target}; SLA de aceite iniciado.`,
-      type: "info",
+      type: "info" as Tone,
     }, ...items].slice(0, 8));
     setDispatchOpen(false);
     setToast("Despacho criado · responsável notificado");
@@ -851,7 +916,7 @@ export default function Home() {
     setToast("Cenário reiniciado com seed 2417");
   };
 
-  const tabNames = ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
+  const tabNames = activeKey === "control" ? controlTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
   const timeLabel = now.toLocaleTimeString("pt-BR", { hour12: false, timeZone: "America/Sao_Paulo" });
 
   return (
@@ -876,6 +941,7 @@ export default function Home() {
               {item.badge ? <span className="workspace-badge">{item.badge}</span> : null}
             </button>
           ))}
+          {activeKey === "control" ? <div className="control-sidebar-subnav"><span>TORRE DE CONTROLE</span>{controlTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Alertas" ? <b>3</b> : tab === "Decisões" ? <b>1</b> : null}</button>)}</div> : null}
         </nav>
 
         <div className="sidebar-actions">
@@ -911,10 +977,12 @@ export default function Home() {
 
           <div className="topbar-actions">
             <button className="ask-button" onClick={() => setAgentOpen(true)}><span>AI</span> Pergunte à plataforma</button>
-            <button className="icon-button" aria-label="Buscar">⌕</button>
+            <button className="data-health-button" onClick={() => selectWorkspace("data")}><span className="health-pulse" /><strong>97,8%</strong><small>dados · 2 offline</small></button>
+            <button className="icon-button" aria-label="Buscar" onClick={() => setSearchOpen((value) => !value)}>⌕</button>
             <button className="icon-button notification" aria-label="Notificações">◌<span>6</span></button>
-            <button className="profile-button"><span className="avatar">MS</span><span><strong>Marina Silva</strong><small>Executivo da Unidade</small></span><b>⌄</b></button>
+            <button className="profile-button profile-select"><span className="avatar">MS</span><span><strong>Marina Silva</strong><small>{profile} · Unidade</small></span><b>⌄</b><select aria-label="Selecionar perfil" value={profile} onChange={(event) => setProfile(event.target.value)}><option>Executivo</option><option>Operação</option><option>HSE</option><option>Meteorologia</option></select></button>
           </div>
+          {searchOpen ? <form className="universal-search" onSubmit={(event) => { event.preventDefault(); setToast(searchTerm ? `Busca contextual: ${searchTerm} · 7 resultados` : "Digite um ativo, alerta, incidente, job ou decisão"); }}><span>⌕</span><input autoFocus value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Buscar D-04, C17, AL-0187, DEC-0248…" /><button type="submit">Buscar</button><button type="button" onClick={() => setSearchOpen(false)}>×</button></form> : null}
         </header>
 
         <div className="incident-strip">
@@ -935,13 +1003,37 @@ export default function Home() {
               <button className="primary-button" onClick={() => setDispatchOpen(true)}>＋ Novo despacho</button>
             </div>
           </div>
+          {activeKey === "control" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"].map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, KPIs, riscos e recomendações`); }}>{item}</button>)}</div><div className="context-summary"><span>OperationalContext</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {selectedAsset} · {stage.label}</small></div></div> : null}
           <div className="subnav" role="tablist" aria-label={`Navegação de ${active.title}`}>
             {tabNames.map((tab) => <button key={tab} role="tab" aria-selected={subview === tab} className={subview === tab ? "active" : ""} onClick={() => setSubview(tab)}>{tab}</button>)}
           </div>
         </div>
 
         <div className="workspace-scroll">
-          {subview === "Visão geral" && (
+          {activeKey === "control" ? <ControlModule
+            subview={subview}
+            horizon={horizon}
+            profile={profile}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            scenarioName={scenarioName}
+            mapStatus={mapStatus}
+            layers={layers}
+            selectedAsset={selectedAsset}
+            feed={feed}
+            decisionState={decisionState}
+            incidentMode={incidentMode}
+            renderMap={() => <ArcGISMap activeWorkspace={active} layerVisibility={layers} onMapStatus={setMapStatus} onAssetSelect={setSelectedAsset} />}
+            onToggleLayer={(key) => setLayers((value) => ({ ...value, [key]: !value[key] }))}
+            onSelectAsset={setSelectedAsset}
+            onApproveDecision={approveDecision}
+            onDispatch={() => setDispatchOpen(true)}
+            onAgents={() => setAgentOpen(true)}
+            onIncidentMode={setIncidentMode}
+            onToast={setToast}
+          /> : null}
+
+          {activeKey !== "control" && subview === "Visão geral" && (
             <>
               <section className="metrics-grid" aria-label="Indicadores principais">
                 {liveMetrics.map((metric, index) => (
@@ -1042,7 +1134,7 @@ export default function Home() {
             </>
           )}
 
-          {subview === "Mapa vivo" && (
+          {activeKey !== "control" && subview === "Mapa vivo" && (
             <section className="map-product-view">
               <article className="panel full-map-panel">
                 <div className="panel-header"><div><span className="eyebrow">MAPA-TEMPO 2D/3D</span><h2>{active.title} · contexto geoespacial</h2></div><div className="map-header-actions"><StatusPill tone={stage.tone}>{stage.time} · {stage.label}</StatusPill><button className="secondary-button" onClick={() => setDispatchOpen(true)}>Criar ação no mapa</button></div></div>
@@ -1099,7 +1191,7 @@ export default function Home() {
         </div>
 
         <footer className="timeline-footer">
-          <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
+          <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="timeline-button" onClick={() => setScenarioStep((value) => Math.min(scenarioStages.length - 1, value + 1))} aria-label="Próximo evento">⏭</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 5 : value === 5 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
           <div className="scenario-timeline">{scenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
           <div className="footer-health"><span className="health-pulse" /><div><strong>Dados operacionais</strong><small>Atualizado há 4,8 s · confiança 96,7%</small></div><button className="footer-status" onClick={() => selectWorkspace("data")}>12/12</button></div>
         </footer>
