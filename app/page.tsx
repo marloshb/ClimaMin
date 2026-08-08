@@ -5,6 +5,7 @@ import { ControlModule, controlTabs } from "./control-module";
 import { ClimateModule, climateTabs } from "./climate-module";
 import { HazardsModule, hazardBaseFeed, hazardScenarioFeed, hazardScenarioStages, hazardTabs } from "./hazards-module";
 import { TwinModule, twinBaseFeed, twinScenarioFeed, twinScenarioStages, twinTabs } from "./twin-module";
+import { ChainModule, chainBaseFeed, chainScenarioFeed, chainScenarioStages, chainTabs } from "./chain-module";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
 
@@ -235,30 +236,30 @@ const workspaces: Workspace[] = [
     title: "Cadeia e Gargalos",
     shortTitle: "Cadeia",
     mission: "Modelar como restrições locais se propagam por produção, estoques, logística, contratos e entrega.",
-    result: "Critical path, capacidade perdida, filas, demurrage, contrato afetado e contingência recomendada.",
-    status: "1 gargalo crítico",
+    result: "Operational Supply Chain Digital Twin com balanço de massa, propagação temporal, gargalos, filas, compromissos e recovery.",
+    status: "BOT-022 · 1 compromisso crítico",
     tone: "alert",
     badge: 1,
     metrics: makeMetrics(
-      ["Throughput projetado", "83,4%", "−7,1 pp", "Próximas 24h", "alert"],
-      ["Estoque pulmão", "11,8 h", "−2,4 h", "Pátio norte", "watch"],
-      ["Navios afetados", "2", "+1", "Berços 1 e 2", "alert"],
-      ["Demurrage evitável", "R$ 1,9 mi", "+R$ 0,4 mi", "Com plano alternativo", "ok"],
+      ["Throughput atual", "92,4%", "−7,6 pp", "Forecast 24h · 88,7%", "alert"],
+      ["Produção em risco", "12,4 kt", "P90", "C17 → U3", "critical"],
+      ["Buffer mínimo", "4h32", "Pátio Produto", "Tempo até limite", "watch"],
+      ["MV Atlas", "+3h20", "C-2048", "Demurrage US$ 3,3k · proxy", "alert"],
     ),
-    features: ["Grafo de processos", "Capacidade por nó e arco", "Estoques e buffers", "Filas ferroviárias e portuárias", "Contratos e prioridades", "Propagação de derating"],
-    flow: ["Receber restrição", "Reduzir capacidade", "Recalcular balanço", "Identificar gargalo", "Propagar cascata", "Valorar impacto", "Recomendar contingência"],
-    forms: ["Nó e arco", "Capacidade", "Estoque mínimo/máximo", "Regra de prioridade", "Contrato e override"],
-    inputs: ["Produção e planos", "Capacidade e estoque", "Trens e navios", "Contratos e custos", "Tempos de ciclo"],
-    outputs: ["Gargalos", "Toneladas em risco", "Atraso e fila", "Demurrage", "Ação recomendada"],
-    reports: ["Mapa de gargalos", "Capacidade diária", "Risco de entrega", "Perdas evitadas", "Pós-evento da cadeia"],
-    charts: ["Sankey de material", "Grafo causal", "Throughput", "Estoque projetado", "Gantt de trens/navios"],
-    external: ["AIS", "Condição ferroviária", "Rodovias", "Janela marítima", "Fornecedores críticos"],
-    internal: ["MES / APS", "TOS / Porto", "Ferrovia", "ERP / Comercial", "EAM"],
-    agents: ["ATLAS Cascata", "GARGALO Detector", "CONTRATO Analista"],
+    features: ["Dynamic Process Network", "Mass balance e network flow", "Inventários e buffers por qualidade", "Discrete event para filas", "Propagação causal temporal", "Bottleneck e next bottleneck", "Rail, port e vessel intelligence", "Commitments e recovery"],
+    flow: ["Receber AssetConstraint", "Localizar na cadeia", "Reconciliar balanço", "Aplicar proteção do buffer", "Propagar fluxo e filas", "Detectar gargalo efetivo", "Alcançar compromisso", "Modelar recovery", "Publicar ChainSignal"],
+    forms: ["ProcessNode / ProcessEdge", "InventoryBuffer", "ProcessConstraint LIVE / SCENARIO", "TrainMovement", "VesselCall", "DeliveryCommitment", "Override auditável"],
+    inputs: ["AssetConstraint e HazardSurface", "MES / APS e capacidades", "Inventários e qualidade", "Trens / ETA / filas", "Navios / AIS / berços", "Contratos e compromissos"],
+    outputs: ["PropagationRun / Result", "Bottleneck e CriticalPath", "ThroughputForecast", "ChainSignal", "PlanningConstraintSet", "RecoveryCurve e confidence"],
+    reports: ["Chain Situation Report", "Bottleneck Report", "Throughput Forecast", "Inventory & Buffer Report", "Rail Flow Report", "Port & Vessel Report", "Delivery Risk Report", "Recovery Report"],
+    charts: ["Dynamic network graph", "Sankey de volume", "Throughput", "Curva de inventário", "Fila temporal", "Gantt", "Waterfall operacional", "Critical path", "Recovery curve"],
+    external: ["ArcGIS Living Atlas", "AIS / VTS", "Condição ferroviária", "Clima marítimo", "Fornecedores e origem"],
+    internal: ["MES / APS", "SCADA / Historian", "TOS / Porto", "EFVM", "ERP / Comercial", "EAM / CMMS", "Event Store"],
+    agents: ["CHAIN ORCHESTRATOR", "PROPAGATION", "BOTTLENECK", "BUFFER", "QUEUE", "RAIL", "PORT", "COMMITMENT", "RECONCILIATION", "CAUSALITY", "RECOVERY", "SENSITIVITY"],
     jobs: [
-      { id: "CAS-511", item: "Recalcular cadeia com bomba D-04 degradada", owner: "ATLAS", due: "13:39", status: "Executando", priority: "Crítica" },
-      { id: "NAV-203", item: "Reordenar janela dos navios B1/B2", owner: "Planejamento Porto", due: "14:20", status: "Alternativas geradas", priority: "Alta" },
-      { id: "FER-088", item: "Reduzir chegada EFVM no bloco 18h", owner: "Logística", due: "15:00", status: "Aguardando aceite", priority: "Alta" },
+      { id: "PR-881", item: "Propagar CONST-201 por fluxo, buffers e filas", owner: "PROPAGATION", due: "18:45", status: "Concluído", priority: "Crítica" },
+      { id: "BOT-022", item: "Monitorar C17 e próximo gargalo Berço 2", owner: "BOTTLENECK", due: "20:10", status: "Ativo", priority: "Crítica" },
+      { id: "CHS-0184", item: "Publicar impacto de 12,4 kt e recovery 9h30", owner: "CHAIN ORCHESTRATOR", due: "18:46", status: "Publicado", priority: "Alta" },
     ],
   },
   {
@@ -852,7 +853,7 @@ export default function Home() {
 
   const active = useMemo(() => workspaces.find((item) => item.key === activeKey) ?? workspaces[0], [activeKey]);
   const catalogModule = useMemo(() => workspaces.find((item) => item.key === catalogKey) ?? workspaces[0], [catalogKey]);
-  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : activeKey === "hazards" ? hazardScenarioStages : activeKey === "twin" ? twinScenarioStages : scenarioStages;
+  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : activeKey === "hazards" ? hazardScenarioStages : activeKey === "twin" ? twinScenarioStages : activeKey === "chain" ? chainScenarioStages : scenarioStages;
   const stage = activeScenarioStages[Math.min(scenarioStep, activeScenarioStages.length - 1)];
 
   useEffect(() => {
@@ -892,11 +893,21 @@ export default function Home() {
         setSelectedAsset("C17");
         setFeed(twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })));
       }
+    } else if (hash.startsWith("#chain/")) {
+      const route = hash.replace(/^#chain\//, "");
+      const matchedTab = chainTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("chain");
+        setSubview(matchedTab);
+        setScenarioStep(10);
+        setSelectedAsset("CONV-C17");
+        setFeed(chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })));
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin") return;
+    if (activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && activeKey !== "chain") return;
     window.history.replaceState(null, "", `#${activeKey}/${controlRouteSlug(subview)}`);
   }, [activeKey, subview]);
 
@@ -923,7 +934,7 @@ export default function Home() {
   useEffect(() => {
     if (scenarioStep === lastScenarioFeed.current) return;
     lastScenarioFeed.current = scenarioStep;
-    const entry = (activeKey === "climate" ? climateScenarioFeed : activeKey === "hazards" ? hazardScenarioFeed : activeKey === "twin" ? twinScenarioFeed : scenarioFeed)[scenarioStep];
+    const entry = (activeKey === "climate" ? climateScenarioFeed : activeKey === "hazards" ? hazardScenarioFeed : activeKey === "twin" ? twinScenarioFeed : activeKey === "chain" ? chainScenarioFeed : scenarioFeed)[scenarioStep];
     if (entry) {
       setFeed((items) => [
         { id: Date.now(), time: now.toLocaleTimeString("pt-BR", { hour12: false }), ...entry },
@@ -949,12 +960,12 @@ export default function Home() {
 
   const selectWorkspace = (key: string) => {
     setActiveKey(key);
-    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : key === "hazards" ? "Situação Multiameaças" : key === "twin" ? "Situação Operacional" : "Visão geral");
-    setScenarioStep(key === "control" ? 2 : key === "twin" ? 3 : 0);
+    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : key === "hazards" ? "Situação Multiameaças" : key === "twin" ? "Situação Operacional" : key === "chain" ? "Situação da Cadeia" : "Visão geral");
+    setScenarioStep(key === "control" ? 2 : key === "twin" ? 3 : key === "chain" ? 10 : 0);
     setScenarioRunning(false);
     setIncidentMode(false);
-    setFeed(key === "climate" ? climateBaseFeed : key === "hazards" ? hazardInitialFeed : key === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : baseFeed);
-    lastScenarioFeed.current = key === "control" ? 2 : key === "twin" ? 3 : 0;
+    setFeed(key === "climate" ? climateBaseFeed : key === "hazards" ? hazardInitialFeed : key === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : key === "chain" ? chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })) : baseFeed);
+    lastScenarioFeed.current = key === "control" ? 2 : key === "twin" ? 3 : key === "chain" ? 10 : 0;
   };
 
   const approveDecision = () => {
@@ -989,7 +1000,7 @@ export default function Home() {
     setScenarioRunning(false);
     setIncidentMode(false);
     setDecisionState("Aguardando aprovação");
-    setFeed(activeKey === "climate" ? climateBaseFeed : activeKey === "hazards" ? hazardInitialFeed : activeKey === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : baseFeed);
+    setFeed(activeKey === "climate" ? climateBaseFeed : activeKey === "hazards" ? hazardInitialFeed : activeKey === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : activeKey === "chain" ? chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })) : baseFeed);
     lastScenarioFeed.current = 0;
     setToast("Cenário reiniciado com seed 2417");
   };
@@ -1016,7 +1027,7 @@ export default function Home() {
     setToast("HSIG-1032 publicado · Torre, Gêmeo, Planejamento e Emergência notificados");
   };
 
-  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : activeKey === "hazards" ? hazardTabs : activeKey === "twin" ? twinTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
+  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : activeKey === "hazards" ? hazardTabs : activeKey === "twin" ? twinTabs : activeKey === "chain" ? chainTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
   const timeLabel = now.toLocaleTimeString("pt-BR", { hour12: false, timeZone: "America/Sao_Paulo" });
 
   return (
@@ -1045,6 +1056,7 @@ export default function Home() {
           {activeKey === "climate" ? <div className="control-sidebar-subnav climate-sidebar-subnav"><span>CLIMA E PREVISÕES</span>{climateTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Observações" ? <b>1</b> : tab === "Nowcasting" ? <b>1</b> : null}</button>)}</div> : null}
           {activeKey === "hazards" ? <div className="control-sidebar-subnav hazards-sidebar-subnav"><span>PERIGOS E MODELOS</span>{hazardTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Execuções" ? <b>1</b> : tab === "Validação & QA" ? <b>1</b> : null}</button>)}</div> : null}
           {activeKey === "twin" ? <div className="control-sidebar-subnav twin-sidebar-subnav"><span>GÊMEO OPERACIONAL</span>{twinTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Inspeções" ? <b>2</b> : tab === "Liberações" ? <b>1</b> : null}</button>)}</div> : null}
+          {activeKey === "chain" ? <div className="control-sidebar-subnav chain-sidebar-subnav"><span>CADEIA E GARGALOS</span>{chainTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Restrições" ? <b>4</b> : tab === "Compromissos" ? <b>1</b> : null}</button>)}</div> : null}
         </nav>
 
         <div className="sidebar-actions">
@@ -1103,10 +1115,10 @@ export default function Home() {
             <div className="heading-actions">
               <StatusPill tone={active.tone}>{active.status}</StatusPill>
               <button className="secondary-button" onClick={() => { setCatalogKey(active.key); setCatalogOpen(true); }}>Ficha do módulo</button>
-              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : activeKey === "hazards" ? () => setSubview("Execuções") : activeKey === "twin" ? () => setSubview("Inspeções") : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : activeKey === "hazards" ? "＋ Novo model run" : activeKey === "twin" ? "＋ Nova vistoria" : "＋ Novo despacho"}</button>
+              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : activeKey === "hazards" ? () => setSubview("Execuções") : activeKey === "twin" ? () => setSubview("Inspeções") : activeKey === "chain" ? () => setSubview("Restrições") : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : activeKey === "hazards" ? "＋ Novo model run" : activeKey === "twin" ? "＋ Nova vistoria" : activeKey === "chain" ? "＋ Nova restrição" : "＋ Novo despacho"}</button>
             </div>
           </div>
-          {activeKey === "control" || activeKey === "climate" || activeKey === "hazards" || activeKey === "twin" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : activeKey === "hazards" || activeKey === "twin" ? ["AGORA", "+1H", "+3H", "+6H", "+12H", "+24H", "CENÁRIO"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : activeKey === "hazards" ? "HazardContext" : activeKey === "twin" ? "AssetContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : activeKey === "hazards" ? "HMR-882 · HS-882" : activeKey === "twin" ? `${selectedAsset} · HS-882` : selectedAsset} · {stage.label}</small></div></div> : null}
+          {activeKey === "control" || activeKey === "climate" || activeKey === "hazards" || activeKey === "twin" || activeKey === "chain" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : activeKey === "hazards" || activeKey === "twin" || activeKey === "chain" ? ["AGORA", "+1H", "+3H", "+6H", "+12H", "+24H", "CENÁRIO"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : activeKey === "hazards" ? "HazardContext" : activeKey === "twin" ? "AssetContext" : activeKey === "chain" ? "ChainContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : activeKey === "hazards" ? "HMR-882 · HS-882" : activeKey === "twin" ? `${selectedAsset} · HS-882` : activeKey === "chain" ? `PR-881 · BOT-022 · ${selectedAsset}` : selectedAsset} · {stage.label}</small></div></div> : null}
           <div className="subnav" role="tablist" aria-label={`Navegação de ${active.title}`}>
             {tabNames.map((tab) => <button key={tab} role="tab" aria-selected={subview === tab} className={subview === tab ? "active" : ""} onClick={() => setSubview(tab)}>{tab}</button>)}
           </div>
@@ -1184,11 +1196,33 @@ export default function Home() {
             onAgents={() => setAgentOpen(true)}
             onToast={setToast}
             onHazards={() => { selectWorkspace("hazards"); setSubview("Hidrologia & Inundação"); setToast("Abrindo HazardSurface HS-882 no Módulo 3"); }}
-            onChain={() => { selectWorkspace("chain"); setSubview("Visão geral"); setToast("AssetConstraint AC-2084 entregue ao Módulo 5 · capacidade 2.300 t/h"); }}
+            onChain={() => { selectWorkspace("chain"); setSubview("Propagação"); setToast("AssetConstraint AC-2084 entregue ao Módulo 5 · PropagationRun PR-881 iniciado"); }}
             onTower={() => { selectWorkspace("control"); setSubview("Situação integrada"); setToast("Mudança de estado e capacidade publicada na Torre de Controle"); }}
           /> : null}
 
-          {activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && subview === "Visão geral" && (
+          {activeKey === "chain" ? <ChainModule
+            subview={subview}
+            horizon={horizon}
+            profile={profile}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            mapStatus={mapStatus}
+            layers={layers}
+            selectedAsset={selectedAsset}
+            renderMap={() => <ArcGISMap activeWorkspace={active} layerVisibility={layers} onMapStatus={setMapStatus} onAssetSelect={setSelectedAsset} />}
+            onHorizon={setHorizon}
+            onToggleLayer={(key) => setLayers((value) => ({ ...value, [key]: !value[key] }))}
+            onSelectAsset={setSelectedAsset}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+            onTwin={() => { selectWorkspace("twin"); setSubview("Capacidade & Restrições"); setSelectedAsset("C17"); setToast("Abrindo AC-2084 e CONST-201 no Gêmeo Operacional"); }}
+            onHazards={() => { selectWorkspace("hazards"); setSubview("Hidrologia & Inundação"); setToast("Abrindo HMR-882 e HS-882 no Módulo 3"); }}
+            onTower={() => { selectWorkspace("control"); setSubview("Sinais"); setToast("ChainSignal CHS-0184 aberto na Torre de Controle"); }}
+            onPlanning={() => { selectWorkspace("planning"); setSubview("Visão geral"); setToast("PlanningConstraintSet enviado com capacidades, buffers, filas e compromissos"); }}
+            onRisk={() => { selectWorkspace("risk"); setSubview("Visão geral"); setToast("Impacto operacional e demurrage PROXY enviados ao Módulo 7"); }}
+          /> : null}
+
+          {activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && activeKey !== "chain" && subview === "Visão geral" && (
             <>
               <section className="metrics-grid" aria-label="Indicadores principais">
                 {liveMetrics.map((metric, index) => (
@@ -1347,8 +1381,8 @@ export default function Home() {
 
         <footer className="timeline-footer">
           <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="timeline-button" onClick={() => setScenarioStep((value) => Math.min(activeScenarioStages.length - 1, value + 1))} aria-label="Próximo evento">⏭</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 5 : value === 5 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
-          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : activeKey === "hazards" ? "hazard-timeline" : activeKey === "twin" ? "twin-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
-          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : activeKey === "hazards" ? "Model Factory" : activeKey === "twin" ? "Operational Twin" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : activeKey === "hazards" ? "HMR-882 · HS-882 · QA PASS · confidence 79%" : activeKey === "twin" ? "C17 · HS-882 · 6 fontes · confidence 79%" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => activeKey === "hazards" ? setSubview("Execuções") : activeKey === "twin" ? setSubview("Sensores & Saúde") : selectWorkspace("data")}>{activeKey === "climate" ? "98%" : activeKey === "hazards" ? "6/6" : activeKey === "twin" ? "94%" : "12/12"}</button></div>
+          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : activeKey === "hazards" ? "hazard-timeline" : activeKey === "twin" ? "twin-timeline" : activeKey === "chain" ? "chain-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
+          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : activeKey === "hazards" ? "Model Factory" : activeKey === "twin" ? "Operational Twin" : activeKey === "chain" ? "Chain Engine" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : activeKey === "hazards" ? "HMR-882 · HS-882 · QA PASS · confidence 79%" : activeKey === "twin" ? "C17 · HS-882 · 6 fontes · confidence 79%" : activeKey === "chain" ? "PR-881 · BOT-022 · 9 fontes · confidence 74%" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => activeKey === "hazards" ? setSubview("Execuções") : activeKey === "twin" ? setSubview("Sensores & Saúde") : activeKey === "chain" ? setSubview("Agentes & Integrações") : selectWorkspace("data")}>{activeKey === "climate" ? "98%" : activeKey === "hazards" ? "6/6" : activeKey === "twin" ? "94%" : activeKey === "chain" ? "74%" : "12/12"}</button></div>
         </footer>
       </section>
 
