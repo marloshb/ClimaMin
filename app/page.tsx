@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ControlModule, controlTabs } from "./control-module";
+import { ClimateModule, climateTabs } from "./climate-module";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
 
@@ -135,21 +136,21 @@ const workspaces: Workspace[] = [
     tone: "info",
     badge: 2,
     metrics: makeMetrics(
-      ["Chuva P90 · 24h", "186 mm", "+34 mm", "Ensemble ECMWF 12Z", "alert"],
-      ["Prob. > 150 mm", "72%", "+18 pp", "48 de 67 membros", "watch"],
-      ["Rajada máxima", "68 km/h", "+7 km/h", "Janela 18–22h", "watch"],
-      ["Confiança da rodada", "84%", "+6 pp", "Bias corrigido", "ok"],
+      ["Chuva P50 · 24h", "73 mm", "+25 mm", "P90 104 mm · ECMWF 12Z", "alert"],
+      ["Prob. > 50 mm", "76%", "+27 pp", "39 de 51 membros", "watch"],
+      ["Rajada máxima", "82 km/h", "+11 km/h", "Janela 20–22h", "watch"],
+      ["Confiança da rodada", "82%", "+8 pp", "Trust Score · bias corrigido", "ok"],
     ),
-    features: ["Radar, satélite e sensores", "Forecast 0–72h", "Ensemble multi-modelo", "EFI/SOT e anomalias", "Sazonal e ENSO", "CMIP6 e skill score"],
-    flow: ["Ingerir observações", "Receber rodadas", "Assimilar e corrigir viés", "Comparar modelos", "Calcular probabilidade", "Publicar briefing"],
-    forms: ["Configuração de rodada", "Variável e horizonte", "Registro de anomalia", "Avaliação da previsão", "Solicitação de rerun"],
+    features: ["Observações com QA e fallback", "Nowcasting 0–6h", "Forecast probabilístico 0–72h", "Ensemble e comparação de runs", "EFI/SOT, climatologia e anomalias", "Subseasonal, seasonal e drivers", "CMIP6 e verificação"],
+    flow: ["Ingerir observações", "Executar QA e assimilação", "Receber rodadas", "Calibrar ensemble", "Comparar com clima", "Detectar mudança material", "Publicar ClimateSignal e briefing"],
+    forms: ["ClimateSignal", "Configuração de previsão", "Revisão de briefing", "Registro de anomalia", "Solicitação de rerun"],
     inputs: ["ECMWF / Copernicus", "CPTEC / INPE", "INMET / Incaper", "Radar e satélite", "Estações, raios e marégrafos"],
     outputs: ["Campos previstos", "Probabilidade de excedência", "Anomalias", "Confiança e limitações", "Datasets para modelos físicos"],
     reports: ["Boletim 72h", "Boletim sazonal", "Análise de evento", "Scorecard de habilidade", "Previsto × observado"],
     charts: ["Plumas de ensemble", "Meteogramas", "Rosa dos ventos", "Acumulado de chuva", "Skill score"],
     external: ["ECMWF", "ERA5", "CPTEC / INPE", "INMET", "Incaper", "Redes de raios"],
     internal: ["Estações Vale", "Historian", "Model factory", "Planejamento", "Alertas"],
-    agents: ["NIMBUS Meteorologista", "SÍNTESE Briefing", "SENTINELA Anomalias"],
+    agents: ["METEOROLOGISTA Orquestrador", "OBSERVATION QA", "NOWCAST", "ENSEMBLE", "RUN COMPARATOR", "ANOMALY", "SEASONAL", "CLIMATE PROJECTION", "VERIFICATION", "PUBLISHER"],
     jobs: [
       { id: "RUN-12Z", item: "Validar ensemble corrigido para Tubarão", owner: "Meteorologia", due: "13:38", status: "Em validação", priority: "Crítica" },
       { id: "BRF-091", item: "Publicar briefing de mudança material", owner: "NIMBUS", due: "13:42", status: "Rascunho pronto", priority: "Alta" },
@@ -563,12 +564,33 @@ const scenarioStages = [
   { label: "Encerramento", time: "T+180", note: "Briefing automático", tone: "ok" as Tone },
 ];
 
+const climateScenarioStages = [
+  { label: "ECMWF 00Z", time: "T+00", note: "P50 48 mm · sem sinal", tone: "ok" as Tone },
+  { label: "Radar", time: "T+10", note: "Célula C-028 detectada", tone: "info" as Tone },
+  { label: "Observações", time: "T+20", note: "Pressão ↓ · umidade ↑", tone: "watch" as Tone },
+  { label: "ECMWF 12Z", time: "T+30", note: "P50 sobe para 73 mm", tone: "alert" as Tone },
+  { label: "Ensemble", time: "T+35", note: "Spread reduz · P90 104", tone: "watch" as Tone },
+  { label: "Extremo", time: "T+40", note: "EFI 0,86 · SOT 1,20", tone: "critical" as Tone },
+  { label: "Mudança", time: "T+42", note: "+52% classificado material", tone: "alert" as Tone },
+  { label: "ClimateSignal", time: "T+45", note: "CS-204 · 82%", tone: "alert" as Tone },
+  { label: "Torre", time: "T+50", note: "Sinal entregue ao M1", tone: "info" as Tone },
+  { label: "Perigos", time: "T+60", note: "FR-2204 dispara modelo", tone: "watch" as Tone },
+];
+
 const baseFeed: FeedItem[] = [
   { id: 1, time: "13:31:48", agent: "HYDRA", text: "Run hidráulico P90 atingiu 82%; sem falhas numéricas.", type: "info" },
   { id: 2, time: "13:30:16", agent: "SENTINELA", text: "PLU-044 congelado. Série reconciliada com MET-03; confiança 0,86.", type: "watch" },
   { id: 3, time: "13:28:40", agent: "ATLAS", text: "Derating da bomba D-04 desloca gargalo para recebimento às 18h20.", type: "alert" },
   { id: 4, time: "13:26:09", agent: "PRISMA", text: "Cenário B preserva 9,2 kt e reduz risco residual em dois níveis.", type: "ok" },
   { id: 5, time: "13:24:52", agent: "AURORA", text: "Decisão DEC-284 preparada e encaminhada à Sala de Controle.", type: "info" },
+];
+
+const climateBaseFeed: FeedItem[] = [
+  { id: 201, time: "18:41:15", agent: "PUBLISHER", text: "ClimateSignal CS-204 validado para publicação.", type: "watch" },
+  { id: 202, time: "18:41:13", agent: "CLIMATE ORCHESTRATOR", text: "Mudança 00Z → 12Z classificada como material.", type: "alert" },
+  { id: 203, time: "18:41:10", agent: "ANOMALY", text: "EFI 0,86 e SOT 1,20 detectados para precipitação.", type: "critical" },
+  { id: 204, time: "18:41:07", agent: "ENSEMBLE", text: "51 membros processados; spread reduziu 21%.", type: "info" },
+  { id: 205, time: "18:41:04", agent: "DATA", text: "ECMWF 12Z completo e QA aprovado em 98%.", type: "ok" },
 ];
 
 const scenarioFeed: Record<number, { agent: string; text: string; type: Tone }> = {
@@ -589,6 +611,18 @@ const scenarioFeed: Record<number, { agent: string; text: string; type: Tone }> 
   15: { agent: "CAMPO", text: "Vistoria aprovada; sequência de retomada liberada pelo gestor.", type: "ok" },
   16: { agent: "VALOR", text: "Resultado: R$ 8,4 mi potencial, R$ 1,1 mi realizado, R$ 7,3 mi preservado.", type: "ok" },
   17: { agent: "LEDGER", text: "Briefing e cadeia de evidências encerrados sem pendências.", type: "ok" },
+};
+
+const climateScenarioFeed: Record<number, { agent: string; text: string; type: Tone }> = {
+  1: { agent: "NOWCAST", text: "Radar detectou C-028; ETA inicial para Tubarão em 1h34.", type: "info" },
+  2: { agent: "OBSERVATION QA", text: "Estações registram queda de pressão, umidade e vento em elevação.", type: "watch" },
+  3: { agent: "DATA", text: "ECMWF 12Z publicado: P50 alterado de 48 para 73 mm.", type: "alert" },
+  4: { agent: "ENSEMBLE", text: "P90 104 mm; probabilidade >50 mm em 76% dos membros.", type: "watch" },
+  5: { agent: "ANOMALY", text: "EFI 0,86 e SOT 1,20 indicam condição extrema no M-climate.", type: "critical" },
+  6: { agent: "RUN COMPARATOR", text: "Mudança de +52%, pico 2 h mais cedo e núcleo 11 km a oeste.", type: "alert" },
+  7: { agent: "METEOROLOGISTA", text: "ClimateSignal CS-204 gerado com probabilidade 82% e confiança 81%.", type: "alert" },
+  8: { agent: "PUBLISHER", text: "CS-204 enviado pelo Event Bus à Torre de Controle.", type: "info" },
+  9: { agent: "ORCHESTRATOR", text: "Forecast Run FR-2204 encaminhado ao módulo de Perigos.", type: "watch" },
 };
 
 function ArcGISMap({
@@ -810,21 +844,33 @@ export default function Home() {
 
   const active = useMemo(() => workspaces.find((item) => item.key === activeKey) ?? workspaces[0], [activeKey]);
   const catalogModule = useMemo(() => workspaces.find((item) => item.key === catalogKey) ?? workspaces[0], [catalogKey]);
-  const stage = scenarioStages[scenarioStep];
+  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : scenarioStages;
+  const stage = activeScenarioStages[Math.min(scenarioStep, activeScenarioStages.length - 1)];
 
   useEffect(() => {
-    const route = window.location.hash.replace(/^#control\//, "");
-    if (!route || route === window.location.hash) return;
-    const matchedTab = controlTabs.find((tab) => controlRouteSlug(tab) === route);
-    if (matchedTab) {
-      setActiveKey("control");
-      setSubview(matchedTab);
+    const hash = window.location.hash;
+    if (hash.startsWith("#control/")) {
+      const route = hash.replace(/^#control\//, "");
+      const matchedTab = controlTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("control");
+        setSubview(matchedTab);
+      }
+    } else if (hash.startsWith("#climate/")) {
+      const route = hash.replace(/^#climate\//, "");
+      const matchedTab = climateTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("climate");
+        setSubview(matchedTab);
+        setScenarioStep(0);
+        setFeed(climateBaseFeed);
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (activeKey !== "control") return;
-    window.history.replaceState(null, "", `#control/${controlRouteSlug(subview)}`);
+    if (activeKey !== "control" && activeKey !== "climate") return;
+    window.history.replaceState(null, "", `#${activeKey}/${controlRouteSlug(subview)}`);
   }, [activeKey, subview]);
 
   useEffect(() => {
@@ -837,7 +883,7 @@ export default function Home() {
     const delay = speed === 60 ? 700 : speed === 10 ? 1300 : 2600;
     const timer = window.setInterval(() => {
       setScenarioStep((value) => {
-        if (value >= scenarioStages.length - 1) {
+        if (value >= activeScenarioStages.length - 1) {
           setScenarioRunning(false);
           return value;
         }
@@ -845,20 +891,20 @@ export default function Home() {
       });
     }, delay);
     return () => window.clearInterval(timer);
-  }, [scenarioRunning, speed]);
+  }, [scenarioRunning, speed, activeScenarioStages]);
 
   useEffect(() => {
     if (scenarioStep === lastScenarioFeed.current) return;
     lastScenarioFeed.current = scenarioStep;
-    const entry = scenarioFeed[scenarioStep];
+    const entry = (activeKey === "climate" ? climateScenarioFeed : scenarioFeed)[scenarioStep];
     if (entry) {
       setFeed((items) => [
         { id: Date.now(), time: now.toLocaleTimeString("pt-BR", { hour12: false }), ...entry },
         ...items,
       ].slice(0, 8));
     }
-    if (scenarioStep === 11) setIncidentMode(true);
-  }, [scenarioStep, now]);
+    if (activeKey === "control" && scenarioStep === 11) setIncidentMode(true);
+  }, [activeKey, scenarioStep, now]);
 
   useEffect(() => {
     if (!toast) return;
@@ -876,7 +922,12 @@ export default function Home() {
 
   const selectWorkspace = (key: string) => {
     setActiveKey(key);
-    setSubview(key === "control" ? "Situação integrada" : "Visão geral");
+    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : "Visão geral");
+    setScenarioStep(key === "control" ? 2 : 0);
+    setScenarioRunning(false);
+    setIncidentMode(false);
+    setFeed(key === "climate" ? climateBaseFeed : baseFeed);
+    lastScenarioFeed.current = key === "control" ? 2 : 0;
   };
 
   const approveDecision = () => {
@@ -911,12 +962,23 @@ export default function Home() {
     setScenarioRunning(false);
     setIncidentMode(false);
     setDecisionState("Aguardando aprovação");
-    setFeed(baseFeed);
+    setFeed(activeKey === "climate" ? climateBaseFeed : baseFeed);
     lastScenarioFeed.current = 0;
     setToast("Cenário reiniciado com seed 2417");
   };
 
-  const tabNames = activeKey === "control" ? controlTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
+  const publishClimateSignal = () => {
+    setFeed((items) => [{
+      id: Date.now(),
+      time: now.toLocaleTimeString("pt-BR", { hour12: false }),
+      agent: "PUBLISHER",
+      text: "ClimateSignal CS-204 publicado no Event Bus e entregue à Torre de Controle.",
+      type: "ok" as Tone,
+    }, ...items].slice(0, 8));
+    setToast("CS-204 publicado · Torre de Controle e Perigos notificados");
+  };
+
+  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
   const timeLabel = now.toLocaleTimeString("pt-BR", { hour12: false, timeZone: "America/Sao_Paulo" });
 
   return (
@@ -942,6 +1004,7 @@ export default function Home() {
             </button>
           ))}
           {activeKey === "control" ? <div className="control-sidebar-subnav"><span>TORRE DE CONTROLE</span>{controlTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Alertas" ? <b>3</b> : tab === "Decisões" ? <b>1</b> : null}</button>)}</div> : null}
+          {activeKey === "climate" ? <div className="control-sidebar-subnav climate-sidebar-subnav"><span>CLIMA E PREVISÕES</span>{climateTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Observações" ? <b>1</b> : tab === "Nowcasting" ? <b>1</b> : null}</button>)}</div> : null}
         </nav>
 
         <div className="sidebar-actions">
@@ -1000,10 +1063,10 @@ export default function Home() {
             <div className="heading-actions">
               <StatusPill tone={active.tone}>{active.status}</StatusPill>
               <button className="secondary-button" onClick={() => { setCatalogKey(active.key); setCatalogOpen(true); }}>Ficha do módulo</button>
-              <button className="primary-button" onClick={() => setDispatchOpen(true)}>＋ Novo despacho</button>
+              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : "＋ Novo despacho"}</button>
             </div>
           </div>
-          {activeKey === "control" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"].map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, KPIs, riscos e recomendações`); }}>{item}</button>)}</div><div className="context-summary"><span>OperationalContext</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {selectedAsset} · {stage.label}</small></div></div> : null}
+          {activeKey === "control" || activeKey === "climate" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : selectedAsset} · {stage.label}</small></div></div> : null}
           <div className="subnav" role="tablist" aria-label={`Navegação de ${active.title}`}>
             {tabNames.map((tab) => <button key={tab} role="tab" aria-selected={subview === tab} className={subview === tab ? "active" : ""} onClick={() => setSubview(tab)}>{tab}</button>)}
           </div>
@@ -1033,7 +1096,22 @@ export default function Home() {
             onToast={setToast}
           /> : null}
 
-          {activeKey !== "control" && subview === "Visão geral" && (
+          {activeKey === "climate" ? <ClimateModule
+            subview={subview}
+            horizon={horizon}
+            profile={profile}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            mapStatus={mapStatus}
+            renderMap={() => <ArcGISMap activeWorkspace={active} layerVisibility={layers} onMapStatus={setMapStatus} />}
+            onHorizon={setHorizon}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+            onClimateSignal={publishClimateSignal}
+            onHazards={() => { selectWorkspace("hazards"); setToast("Forecast Run FR-2204 encaminhado ao Módulo 3 · Perigos"); }}
+          /> : null}
+
+          {activeKey !== "control" && activeKey !== "climate" && subview === "Visão geral" && (
             <>
               <section className="metrics-grid" aria-label="Indicadores principais">
                 {liveMetrics.map((metric, index) => (
@@ -1134,7 +1212,7 @@ export default function Home() {
             </>
           )}
 
-          {activeKey !== "control" && subview === "Mapa vivo" && (
+          {activeKey !== "control" && activeKey !== "climate" && subview === "Mapa vivo" && (
             <section className="map-product-view">
               <article className="panel full-map-panel">
                 <div className="panel-header"><div><span className="eyebrow">MAPA-TEMPO 2D/3D</span><h2>{active.title} · contexto geoespacial</h2></div><div className="map-header-actions"><StatusPill tone={stage.tone}>{stage.time} · {stage.label}</StatusPill><button className="secondary-button" onClick={() => setDispatchOpen(true)}>Criar ação no mapa</button></div></div>
@@ -1191,9 +1269,9 @@ export default function Home() {
         </div>
 
         <footer className="timeline-footer">
-          <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="timeline-button" onClick={() => setScenarioStep((value) => Math.min(scenarioStages.length - 1, value + 1))} aria-label="Próximo evento">⏭</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 5 : value === 5 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
-          <div className="scenario-timeline">{scenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
-          <div className="footer-health"><span className="health-pulse" /><div><strong>Dados operacionais</strong><small>Atualizado há 4,8 s · confiança 96,7%</small></div><button className="footer-status" onClick={() => selectWorkspace("data")}>12/12</button></div>
+          <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="timeline-button" onClick={() => setScenarioStep((value) => Math.min(activeScenarioStages.length - 1, value + 1))} aria-label="Próximo evento">⏭</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 5 : value === 5 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
+          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
+          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => selectWorkspace("data")}>{activeKey === "climate" ? "98%" : "12/12"}</button></div>
         </footer>
       </section>
 

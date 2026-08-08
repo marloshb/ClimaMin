@@ -51,6 +51,7 @@ export const controlTabs = [
 ];
 
 const signals = [
+  { id: "CS-204", time: "18:41", signal: "Chuva extrema · ClimateSignal", origin: "M2 · FR-2204", change: "+52% vs. 00Z", relevance: "Alta", state: "Recebido", tone: "critical" as Tone },
   { id: "S-482", time: "16:32", signal: "Chuva extrema", origin: "ECMWF 12Z", change: "48 → 73 mm", relevance: "Alta", state: "Novo", tone: "alert" as Tone },
   { id: "S-483", time: "16:31", signal: "Nível D-04", origin: "IoT · NIV-D04-02", change: "+14 cm / 10 min", relevance: "Alta", state: "Observando", tone: "watch" as Tone },
   { id: "S-477", time: "16:28", signal: "ETA MV Atlas", origin: "AIS", change: "+52 min", relevance: "Média", state: "Avaliado", tone: "info" as Tone },
