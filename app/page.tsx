@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ControlModule, controlTabs } from "./control-module";
 import { ClimateModule, climateTabs } from "./climate-module";
+import { HazardsModule, hazardBaseFeed, hazardScenarioFeed, hazardScenarioStages, hazardTabs } from "./hazards-module";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
 
@@ -166,29 +167,29 @@ const workspaces: Workspace[] = [
     shortTitle: "Perigos",
     mission: "Converter condições meteorológicas em intensidade física, extensão, duração e probabilidade de impacto.",
     result: "Superfícies de inundação, vento, raios, calor, fogo, encostas e costa com incerteza rastreável.",
-    status: "2 modelos ativos",
+    status: "6 modelos ativos",
     tone: "watch",
     badge: 2,
     metrics: makeMetrics(
-      ["Área inundável P90", "38,4 ha", "+6,1 ha", "HIDRO-2D v3.8", "alert"],
-      ["Ativos expostos", "17", "+5", "Criticidade alta", "alert"],
-      ["Tempo até extravasar", "2h 18m", "−42 min", "Ponto D-04", "critical"],
-      ["Qualidade do run", "0,91", "+0,04", "Pré-check aprovado", "ok"],
+      ["Perigos ativos", "4", "2 relevantes", "Flood · wind · lightning · heat", "alert"],
+      ["Área potencial", "2,6 km²", "+42%", "Inundação P90 · D-04", "critical"],
+      ["Primeiro impacto", "01h24", "−18 min", "Chegada provável 19:42", "alert"],
+      ["Hazard confidence", "79/100", "QA PASS", "HMR-882 · HS-882", "ok"],
     ),
-    features: ["Catálogo versionado", "Execução por gatilho", "Hidráulica 1D/2D", "WBGT, vento e raios", "Fogo e encostas", "Eventos compostos"],
-    flow: ["Selecionar ameaça", "Validar estado inicial", "Configurar domínio", "Executar pipeline", "Avaliar qualidade", "Publicar perigo", "Gerar impacto"],
-    forms: ["Ficha de execução", "Parâmetros e domínio", "Estado inicial", "Validação técnica", "Exceção e limitações"],
-    inputs: ["Previsões probabilísticas", "DEM e drenagem", "Batimetria e maré", "Estado de bombas", "Solo, vegetação e ativos"],
-    outputs: ["Profundidade e velocidade", "Rajadas e WBGT", "Propagação de fogo", "Fator de segurança", "Área impactada e incerteza"],
-    reports: ["Relatório da rodada", "Mapa técnico de ameaça", "Validação observado × modelado", "Evento composto", "Performance e limitações"],
-    charts: ["Hietograma e hidrograma", "Curva nível–vazão", "Histogramas de ensemble", "Fator de segurança", "Intensidade–duração"],
-    external: ["Terrain 3D", "Sentinel-2", "VIIRS Hotspots", "Global Wind Atlas", "Maré e ondas"],
-    internal: ["Model Registry", "Raster Store", "Gêmeo Operacional", "Cadeia", "Emergência"],
-    agents: ["HYDRA Orquestrador", "PRÉ-CHECK Guardião", "SENTINELA Inconsistências"],
+    features: ["Situação multiameaças", "Model Registry versionado", "Fast e full model routing", "Hidrologia e hidráulica 1D/2D", "13 motores físicos", "Eventos compostos", "QA, validação e SLO"],
+    flow: ["Receber ClimateSignal", "Selecionar modelos", "Validar pré-condições", "Executar física", "Quantificar incerteza", "QA técnico", "Publicar HazardSurface e Signal"],
+    forms: ["Novo HazardModelRun", "Override de condição inicial", "Validação técnica", "Publicação controlada", "Registro de limitação"],
+    inputs: ["ForecastRun FR-2204", "DEM, drenagem e batimetria", "Bombas, solo e reservatórios", "Maré, ondas e vento", "Vegetação, geologia e observações"],
+    outputs: ["HazardSurface e HazardZone", "Intensity, arrival e duration", "HazardProbability e Evolution", "CompoundHazard", "HazardSignal HSIG-1032"],
+    reports: ["Model Run Report", "Hazard Situation Report", "Flood Assessment", "Compound Event Assessment", "Model Performance Report"],
+    charts: ["Hietograma e hidrograma", "Comparação P50 × P90", "Sensibilidade operacional", "Fator de segurança", "Skill e SLO"],
+    external: ["ECMWF / Copernicus", "Terrain / LiDAR", "Sentinel-2 Land Cover", "VIIRS Hotspots · Living Atlas", "Maré, ondas e batimetria"],
+    internal: ["M2 · Climate", "SCADA / Historian", "EAM / CMMS", "M4 · Gêmeo Operacional", "M6 · Planejamento"],
+    agents: ["MODEL ORCHESTRATOR", "PRE-CONDITION", "QA", "INCONSISTENCY", "SENSITIVITY", "SCENARIO", "VALIDATION", "PUBLISHER"],
     jobs: [
-      { id: "MOD-482", item: "Executar hidráulica 2D · cenário P90", owner: "HYDRA", due: "13:36", status: "82% concluído", priority: "Crítica" },
-      { id: "VAL-219", item: "Revisar condição inicial das bombas", owner: "Eng. Hídrica", due: "13:50", status: "Aguardando", priority: "Alta" },
-      { id: "PUB-095", item: "Publicar mancha P50/P90", owner: "Modelagem", due: "14:05", status: "Bloqueado por VAL-219", priority: "Alta" },
+      { id: "HMR-882", item: "Executar hidráulica 1D/2D · cenário P90", owner: "MODEL ORCHESTRATOR", due: "18:45", status: "QA aprovado", priority: "Crítica" },
+      { id: "VAL-220", item: "Revisar condição inicial da bomba D04-03", owner: "Eng. Hídrica", due: "18:47", status: "Aguardando", priority: "Alta" },
+      { id: "HS-882", item: "Publicar flood depth P50/P90", owner: "PUBLISHER", due: "18:48", status: "Pronto", priority: "Alta" },
     ],
   },
   {
@@ -593,6 +594,12 @@ const climateBaseFeed: FeedItem[] = [
   { id: 205, time: "18:41:04", agent: "DATA", text: "ECMWF 12Z completo e QA aprovado em 98%.", type: "ok" },
 ];
 
+const hazardInitialFeed: FeedItem[] = hazardBaseFeed.map((item, index) => ({
+  id: 301 + index,
+  time: ["18:45:25", "18:45:21", "18:45:02", "18:44:07", "18:44:04"][index],
+  ...item,
+}));
+
 const scenarioFeed: Record<number, { agent: string; text: string; type: Tone }> = {
   1: { agent: "NIMBUS", text: "ECMWF 12Z recebido; chuva prevista passou de 48 para 73 mm.", type: "info" },
   2: { agent: "AURORA", text: "Mudança material detectada em D-04, Pátio Norte e C17.", type: "info" },
@@ -844,7 +851,7 @@ export default function Home() {
 
   const active = useMemo(() => workspaces.find((item) => item.key === activeKey) ?? workspaces[0], [activeKey]);
   const catalogModule = useMemo(() => workspaces.find((item) => item.key === catalogKey) ?? workspaces[0], [catalogKey]);
-  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : scenarioStages;
+  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : activeKey === "hazards" ? hazardScenarioStages : scenarioStages;
   const stage = activeScenarioStages[Math.min(scenarioStep, activeScenarioStages.length - 1)];
 
   useEffect(() => {
@@ -865,11 +872,20 @@ export default function Home() {
         setScenarioStep(0);
         setFeed(climateBaseFeed);
       }
+    } else if (hash.startsWith("#hazards/")) {
+      const route = hash.replace(/^#hazards\//, "");
+      const matchedTab = hazardTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("hazards");
+        setSubview(matchedTab);
+        setScenarioStep(0);
+        setFeed(hazardInitialFeed);
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (activeKey !== "control" && activeKey !== "climate") return;
+    if (activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards") return;
     window.history.replaceState(null, "", `#${activeKey}/${controlRouteSlug(subview)}`);
   }, [activeKey, subview]);
 
@@ -896,7 +912,7 @@ export default function Home() {
   useEffect(() => {
     if (scenarioStep === lastScenarioFeed.current) return;
     lastScenarioFeed.current = scenarioStep;
-    const entry = (activeKey === "climate" ? climateScenarioFeed : scenarioFeed)[scenarioStep];
+    const entry = (activeKey === "climate" ? climateScenarioFeed : activeKey === "hazards" ? hazardScenarioFeed : scenarioFeed)[scenarioStep];
     if (entry) {
       setFeed((items) => [
         { id: Date.now(), time: now.toLocaleTimeString("pt-BR", { hour12: false }), ...entry },
@@ -922,11 +938,11 @@ export default function Home() {
 
   const selectWorkspace = (key: string) => {
     setActiveKey(key);
-    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : "Visão geral");
+    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : key === "hazards" ? "Situação Multiameaças" : "Visão geral");
     setScenarioStep(key === "control" ? 2 : 0);
     setScenarioRunning(false);
     setIncidentMode(false);
-    setFeed(key === "climate" ? climateBaseFeed : baseFeed);
+    setFeed(key === "climate" ? climateBaseFeed : key === "hazards" ? hazardInitialFeed : baseFeed);
     lastScenarioFeed.current = key === "control" ? 2 : 0;
   };
 
@@ -962,7 +978,7 @@ export default function Home() {
     setScenarioRunning(false);
     setIncidentMode(false);
     setDecisionState("Aguardando aprovação");
-    setFeed(activeKey === "climate" ? climateBaseFeed : baseFeed);
+    setFeed(activeKey === "climate" ? climateBaseFeed : activeKey === "hazards" ? hazardInitialFeed : baseFeed);
     lastScenarioFeed.current = 0;
     setToast("Cenário reiniciado com seed 2417");
   };
@@ -978,7 +994,18 @@ export default function Home() {
     setToast("CS-204 publicado · Torre de Controle e Perigos notificados");
   };
 
-  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
+  const publishHazardSignal = () => {
+    setFeed((items) => [{
+      id: Date.now(),
+      time: now.toLocaleTimeString("pt-BR", { hour12: false }),
+      agent: "PUBLISHER",
+      text: "HSIG-1032 publicado na Torre e HS-882 entregue ao Gêmeo Operacional.",
+      type: "ok" as Tone,
+    }, ...items].slice(0, 8));
+    setToast("HSIG-1032 publicado · Torre, Gêmeo, Planejamento e Emergência notificados");
+  };
+
+  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : activeKey === "hazards" ? hazardTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
   const timeLabel = now.toLocaleTimeString("pt-BR", { hour12: false, timeZone: "America/Sao_Paulo" });
 
   return (
@@ -1005,6 +1032,7 @@ export default function Home() {
           ))}
           {activeKey === "control" ? <div className="control-sidebar-subnav"><span>TORRE DE CONTROLE</span>{controlTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Alertas" ? <b>3</b> : tab === "Decisões" ? <b>1</b> : null}</button>)}</div> : null}
           {activeKey === "climate" ? <div className="control-sidebar-subnav climate-sidebar-subnav"><span>CLIMA E PREVISÕES</span>{climateTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Observações" ? <b>1</b> : tab === "Nowcasting" ? <b>1</b> : null}</button>)}</div> : null}
+          {activeKey === "hazards" ? <div className="control-sidebar-subnav hazards-sidebar-subnav"><span>PERIGOS E MODELOS</span>{hazardTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Execuções" ? <b>1</b> : tab === "Validação & QA" ? <b>1</b> : null}</button>)}</div> : null}
         </nav>
 
         <div className="sidebar-actions">
@@ -1043,7 +1071,7 @@ export default function Home() {
             <button className="data-health-button" onClick={() => selectWorkspace("data")}><span className="health-pulse" /><strong>97,8%</strong><small>dados · 2 offline</small></button>
             <button className="icon-button" aria-label="Buscar" onClick={() => setSearchOpen((value) => !value)}>⌕</button>
             <button className="icon-button notification" aria-label="Notificações">◌<span>6</span></button>
-            <button className="profile-button profile-select"><span className="avatar">MS</span><span><strong>Marina Silva</strong><small>{profile} · Unidade</small></span><b>⌄</b><select aria-label="Selecionar perfil" value={profile} onChange={(event) => setProfile(event.target.value)}><option>Executivo</option><option>Operação</option><option>HSE</option><option>Meteorologia</option></select></button>
+            <button className="profile-button profile-select"><span className="avatar">MS</span><span><strong>Marina Silva</strong><small>{profile} · Unidade</small></span><b>⌄</b><select aria-label="Selecionar perfil" value={profile} onChange={(event) => setProfile(event.target.value)}><option>Executivo</option><option>Operação</option><option>HSE</option><option>Meteorologia</option><option>Modelador</option></select></button>
           </div>
           {searchOpen ? <form className="universal-search" onSubmit={(event) => { event.preventDefault(); setToast(searchTerm ? `Busca contextual: ${searchTerm} · 7 resultados` : "Digite um ativo, alerta, incidente, job ou decisão"); }}><span>⌕</span><input autoFocus value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Buscar D-04, C17, AL-0187, DEC-0248…" /><button type="submit">Buscar</button><button type="button" onClick={() => setSearchOpen(false)}>×</button></form> : null}
         </header>
@@ -1063,10 +1091,10 @@ export default function Home() {
             <div className="heading-actions">
               <StatusPill tone={active.tone}>{active.status}</StatusPill>
               <button className="secondary-button" onClick={() => { setCatalogKey(active.key); setCatalogOpen(true); }}>Ficha do módulo</button>
-              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : "＋ Novo despacho"}</button>
+              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : activeKey === "hazards" ? () => setSubview("Execuções") : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : activeKey === "hazards" ? "＋ Novo model run" : "＋ Novo despacho"}</button>
             </div>
           </div>
-          {activeKey === "control" || activeKey === "climate" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : selectedAsset} · {stage.label}</small></div></div> : null}
+          {activeKey === "control" || activeKey === "climate" || activeKey === "hazards" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : activeKey === "hazards" ? ["AGORA", "+1H", "+3H", "+6H", "+12H", "+24H", "CENÁRIO"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : activeKey === "hazards" ? "HazardContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : activeKey === "hazards" ? "HMR-882 · HS-882" : selectedAsset} · {stage.label}</small></div></div> : null}
           <div className="subnav" role="tablist" aria-label={`Navegação de ${active.title}`}>
             {tabNames.map((tab) => <button key={tab} role="tab" aria-selected={subview === tab} className={subview === tab ? "active" : ""} onClick={() => setSubview(tab)}>{tab}</button>)}
           </div>
@@ -1111,7 +1139,24 @@ export default function Home() {
             onHazards={() => { selectWorkspace("hazards"); setToast("Forecast Run FR-2204 encaminhado ao Módulo 3 · Perigos"); }}
           /> : null}
 
-          {activeKey !== "control" && activeKey !== "climate" && subview === "Visão geral" && (
+          {activeKey === "hazards" ? <HazardsModule
+            subview={subview}
+            horizon={horizon}
+            profile={profile}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            mapStatus={mapStatus}
+            layers={layers}
+            renderMap={() => <ArcGISMap activeWorkspace={active} layerVisibility={layers} onMapStatus={setMapStatus} />}
+            onHorizon={setHorizon}
+            onToggleLayer={(key) => setLayers((value) => ({ ...value, [key]: !value[key] }))}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+            onTower={() => { publishHazardSignal(); selectWorkspace("control"); setSubview("Sinais"); }}
+            onTwin={() => { selectWorkspace("twin"); setToast("HS-882 entregue ao Gêmeo Operacional · intersect com ativos preparado"); }}
+          /> : null}
+
+          {activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && subview === "Visão geral" && (
             <>
               <section className="metrics-grid" aria-label="Indicadores principais">
                 {liveMetrics.map((metric, index) => (
@@ -1212,7 +1257,7 @@ export default function Home() {
             </>
           )}
 
-          {activeKey !== "control" && activeKey !== "climate" && subview === "Mapa vivo" && (
+          {activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && subview === "Mapa vivo" && (
             <section className="map-product-view">
               <article className="panel full-map-panel">
                 <div className="panel-header"><div><span className="eyebrow">MAPA-TEMPO 2D/3D</span><h2>{active.title} · contexto geoespacial</h2></div><div className="map-header-actions"><StatusPill tone={stage.tone}>{stage.time} · {stage.label}</StatusPill><button className="secondary-button" onClick={() => setDispatchOpen(true)}>Criar ação no mapa</button></div></div>
@@ -1270,8 +1315,8 @@ export default function Home() {
 
         <footer className="timeline-footer">
           <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="timeline-button" onClick={() => setScenarioStep((value) => Math.min(activeScenarioStages.length - 1, value + 1))} aria-label="Próximo evento">⏭</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 5 : value === 5 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
-          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
-          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => selectWorkspace("data")}>{activeKey === "climate" ? "98%" : "12/12"}</button></div>
+          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : activeKey === "hazards" ? "hazard-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
+          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : activeKey === "hazards" ? "Model Factory" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : activeKey === "hazards" ? "HMR-882 · HS-882 · QA PASS · confidence 79%" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => activeKey === "hazards" ? setSubview("Execuções") : selectWorkspace("data")}>{activeKey === "climate" ? "98%" : activeKey === "hazards" ? "6/6" : "12/12"}</button></div>
         </footer>
       </section>
 
