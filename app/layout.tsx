@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import "./emergency.css";
 
 export const viewport: Viewport = {
   colorScheme: "light",
