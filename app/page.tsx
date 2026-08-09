@@ -13,6 +13,7 @@ import { EnvironmentModule, environmentBaseFeed, environmentScenarioFeed, enviro
 import { DataModule, dataBaseFeed, dataScenarioFeed, dataScenarioStages, dataTabs } from "./data-module";
 import { GovernanceModule, governanceBaseFeed, governanceScenarioFeed, governanceScenarioStages, governanceTabs } from "./governance-module";
 import { CommunicationsModule, communicationsBaseFeed, communicationsScenarioFeed, communicationsScenarioStages, communicationsTabs } from "./communications-module";
+import { SyntheticRealtimeLayer } from "./synthetic-runtime";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
 
@@ -1255,6 +1256,14 @@ export default function Home() {
         </div>
 
         <div className="workspace-scroll">
+          <SyntheticRealtimeLayer
+            activeKey={activeKey}
+            activeTitle={active.title}
+            timeLabel={timeLabel}
+            scenarioStep={scenarioStep}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+          />
           {activeKey === "control" ? <ControlModule
             subview={subview}
             horizon={horizon}

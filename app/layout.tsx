@@ -7,6 +7,7 @@ import "./chain-v2.css";
 import "./platform-ops.css";
 import "./risk.css";
 import "./communications.css";
+import "./synthetic-runtime.css";
 
 export const viewport: Viewport = {
   colorScheme: "light",
