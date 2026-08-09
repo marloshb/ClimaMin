@@ -3,6 +3,7 @@
 /* eslint-disable react/prop-types, jsx-a11y/label-has-associated-control -- TypeScript Props provide validation; mapped labels wrap their controls. */
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { ChainV2View } from "./chain-v2";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
 type Stage = { label: string; time: string; note: string; tone: Tone };
@@ -37,6 +38,11 @@ export const chainTabs = [
   "Restrições",
   "Propagação",
   "Gargalos & Critical Path",
+  "Normal × Incidente",
+  "Impacto Temporal",
+  "Bottleneck Explorer",
+  "Causal Graph",
+  "Financeiro & Valor",
   "Ferrovia & Filas",
   "Pelotização & Qualidade",
   "Porto & Navios",
@@ -129,6 +135,10 @@ const agents = [
   ["CAUSALITY", "Mantém lineage evento → ativo → processo → cliente.", "8 evidências"],
   ["RECOVERY", "Modela dívida, catch-up e normalização da cadeia.", "9h30 baseline"],
   ["SENSITIVITY", "Calcula alavancas, interações e próximo gargalo.", "C17 46%"],
+  ["BASELINE COMPARATOR", "Compara design, baseline operacional, evento e delta.", "BL-071 × ICS-024"],
+  ["ROOT CAUSE", "Constrói RootCauseTrace com causa dominante e contribuintes.", "RCT-024 · 8 provas"],
+  ["INVENTORY PROPAGATION", "Projeta proteção, saturação e ruptura de buffers no tempo.", "3 buffers · +4h32"],
+  ["FINANCIAL DRIVER", "Entrega drivers operacionais ao M7 sem substituir sua autoridade.", "FD-024 · PROXY"],
 ];
 
 function snapshot(step: number) {
@@ -262,6 +272,7 @@ function AgentsIntegrations(props: Props) {
 
 export function ChainModule(props: Props) {
   return useMemo(() => {
+    if (["Normal × Incidente", "Impacto Temporal", "Bottleneck Explorer", "Causal Graph", "Financeiro & Valor"].includes(props.subview)) return <ChainV2View {...props} />;
     if (props.subview === "Rede & Mapa") return <NetworkMap {...props} />;
     if (props.subview === "Throughput & Fluxos") return <ThroughputFlows {...props} />;
     if (props.subview === "Estoques & Buffers") return <Inventories {...props} />;

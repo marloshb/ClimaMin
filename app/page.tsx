@@ -8,6 +8,9 @@ import { TwinModule, twinBaseFeed, twinScenarioFeed, twinScenarioStages, twinTab
 import { ChainModule, chainBaseFeed, chainScenarioFeed, chainScenarioStages, chainTabs } from "./chain-module";
 import { PlanningModule, planningBaseFeed, planningScenarioFeed, planningScenarioStages, planningTabs } from "./planning-module";
 import { EmergencyModule, emergencyBaseFeed, emergencyScenarioFeed, emergencyScenarioStages, emergencyTabs } from "./emergency-module";
+import { EnvironmentModule, environmentBaseFeed, environmentScenarioFeed, environmentScenarioStages, environmentTabs } from "./environment-module";
+import { DataModule, dataBaseFeed, dataScenarioFeed, dataScenarioStages, dataTabs } from "./data-module";
+import { GovernanceModule, governanceBaseFeed, governanceScenarioFeed, governanceScenarioStages, governanceTabs } from "./governance-module";
 
 type Tone = "ok" | "watch" | "alert" | "critical" | "info";
 
@@ -372,30 +375,31 @@ const workspaces: Workspace[] = [
     icon: "⌾",
     title: "Ambiente, Sociedade e Entorno",
     shortTitle: "Ambiente & Entorno",
-    mission: "Integrar riscos ambientais e sociais da unidade ao comportamento do território e das comunidades do entorno.",
-    result: "Área de influência, receptores, vulnerabilidade, ação, comunicação e evidência de conclusão.",
-    status: "Monitoramento",
-    tone: "info",
+    mission: "Representar como eventos, operações e decisões interagem com o território, os serviços, o ambiente e as comunidades ao redor de Tubarão.",
+    result: "Território, receptores, exposição populacional, impactos, ocorrências, ação institucional, mitigação e recuperação auditável.",
+    status: "TS-081 · impacto alto",
+    tone: "alert",
+    badge: 5,
     metrics: makeMetrics(
-      ["Receptores expostos", "14", "+3", "P90 hidráulico", "watch"],
-      ["Serviços essenciais", "4", "+1", "Na área de influência", "alert"],
-      ["Índice ambiental", "82 / 100", "−3", "Água e sedimentos", "watch"],
-      ["Compromissos no prazo", "96%", "+2 pp", "Últimos 30 dias", "ok"],
+      ["Pessoas potencialmente expostas", "4.820", "+3.620", "Próximas 6h · estimate", "alert"],
+      ["Receptores sensíveis", "14", "+11", "3 prioritários", "watch"],
+      ["Ocorrências abertas", "27", "+23", "5 críticas · 17 agrupadas", "critical"],
+      ["Comunicação territorial", "86%", "+11 pp", "Alcance confirmado", "ok"],
     ),
-    features: ["Água e efluentes", "Ar, poeira e fumaça", "Fogo e vegetação", "Costa e áreas sensíveis", "Vulnerabilidade social", "Ocorrências e condicionantes"],
-    flow: ["Detectar pressão", "Modelar influência", "Identificar receptores", "Avaliar impacto", "Acionar controle", "Comunicar", "Monitorar evidência"],
-    forms: ["Ocorrência socioambiental", "Amostragem", "Receptor e comunidade", "Condicionante", "Manifestação e devolutiva"],
-    inputs: ["Sensores ambientais", "Satélite", "Cadastros territoriais", "Comunidades e serviços", "Qualidade de água/ar"],
-    outputs: ["Mapa de impacto", "Públicos expostos", "Ações e comunicação", "Obrigações", "Risco residual"],
-    reports: ["Qualidade ambiental", "Impacto territorial", "Comunidades", "Fogo e água", "Prestação de contas"],
-    charts: ["Séries de qualidade", "Rosa de poluição", "Mapa de receptores", "Indicadores sociais", "Cumprimento de compromissos"],
-    external: ["IEMA", "ANA", "INPE / VIIRS", "Defesa Civil", "Dados municipais"],
-    internal: ["LIMS Ambiental", "CRM Comunitário", "HSE", "Jurídico", "Comunicação"],
-    agents: ["TERRITÓRIO Analista", "RECEPTOR Detector", "COMPROMISSO Guardião"],
+    features: ["Territorial Digital Twin", "Sensitive Receptor Management", "Social Exposure Analysis", "Air & Water Intelligence", "Infraestrutura e mobilidade", "Ocorrências comunitárias", "Coordenação institucional", "Mitigação e recuperação", "ArcGIS Hub Publication Gate"],
+    flow: ["Localizar evento", "Identificar receptores", "Estimar exposição", "Cruzar observações", "Triar ocorrências", "Verificar em campo", "Decidir e comunicar", "Mitigar", "Recuperar ao baseline", "Aprender"],
+    forms: ["Receptor e comunidade", "Ocorrência", "Monitoramento ambiental", "Amostra e cadeia de custódia", "Vistoria", "Stakeholder", "Comunicação", "Mitigação", "Recuperação"],
+    inputs: ["HazardSurface / Incident", "IBGE Censo 2022", "GeoBases ES", "Sensores e laboratório", "Living Atlas", "Serviços e infraestrutura", "Relatos e campo"],
+    outputs: ["TerritorialSignal", "TerritorialExposure", "Environmental / Social Impact", "ServiceDisruption", "Comunicação segmentada", "MitigationMeasure", "RemediationAction"],
+    reports: ["Territorial Situation Report", "Community Exposure Report", "Sensitive Receptor Report", "Environmental Situation Report", "Infrastructure Disruption Report", "Territorial Post-Event Review"],
+    charts: ["Mapa de exposição", "Sankey source–pathway–receptor", "Séries de ar e água", "Heatmap de ocorrências", "Disponibilidade de serviços", "Communication coverage", "Recovery curve"],
+    external: ["GeoBases / IEMA", "IBGE Censo 2022", "CEMADEN", "ANA / SNIRH", "Living Atlas · VIIRS / Sentinel-2", "Municípios e Defesa Civil"],
+    internal: ["Environmental Monitoring / LIMS", "Operational GIS", "SCADA / HSE", "Community Service", "Field Maps / Survey123", "ArcGIS Hub Publication Gate"],
+    agents: ["TERRITORIAL ORCHESTRATOR", "RECEPTOR AGENT", "SOCIAL EXPOSURE", "ENVIRONMENTAL", "COMMUNITY TRIAGE", "CAUSALITY", "INFRASTRUCTURE", "INSTITUTIONAL", "COMMUNICATION", "FIELD VERIFICATION", "MITIGATION", "RECOVERY", "HOTSPOT", "PRIVACY GUARDIAN", "DATA QUALITY"],
     jobs: [
-      { id: "AMB-338", item: "Cruzar mancha P90 com serviços essenciais", owner: "TERRITÓRIO", due: "13:46", status: "Executando", priority: "Alta" },
-      { id: "COM-222", item: "Validar escolas e unidades de saúde", owner: "Relações Institucionais", due: "14:20", status: "Em revisão", priority: "Alta" },
-      { id: "MON-901", item: "Programar amostragem pós-evento", owner: "Meio Ambiente", due: "17:00", status: "Planejada", priority: "Média" },
+      { id: "TS-081", item: "Validar impacto de acesso C-07 e publicar sinal territorial", owner: "ORCHESTRATOR", due: "19:55", status: "Executando", priority: "Crítica" },
+      { id: "FIELD-204", item: "Confirmar lâmina d'água em V-EXT-04", owner: "Equipe 04", due: "19:54", status: "Em campo", priority: "Crítica" },
+      { id: "MIT-032", item: "Comparar efeito esperado × observado do desvio", owner: "MITIGATION", due: "20:40", status: "Monitorando", priority: "Alta" },
     ],
   },
   {
@@ -437,29 +441,29 @@ const workspaces: Workspace[] = [
     key: "data",
     code: "DQ",
     icon: "∷",
-    title: "Dados, Devices e Qualidade",
-    shortTitle: "Dados & Devices",
-    mission: "Operar a infraestrutura observacional e de integração com cobertura, confiança, baixa latência e modo degradado.",
-    result: "Feeds georreferenciados, score de confiança, SLA, qualidade, incidentes e evidência de manutenção.",
-    status: "1 feed degradado",
+    title: "Dados, Sensores e Infraestrutura",
+    shortTitle: "Dados & Infra",
+    mission: "Operar o sistema nervoso da plataforma com dados confiáveis, disponíveis, atualizados, rastreáveis, espaciais, redundantes, seguros e observáveis.",
+    result: "Captura, transmissão, validação, normalização, publicação, monitoração, linhagem e recuperação ponta a ponta.",
+    status: "7 incidentes · 2 críticos",
     tone: "watch",
     badge: 1,
     metrics: makeMetrics(
-      ["Fontes ativas", "146 / 148", "−2", "99,2% disponibilidade", "watch"],
-      ["Latência P95", "4,8 s", "+1,1 s", "Meta < 5 s", "watch"],
-      ["Qualidade média", "96,7%", "+0,8 pp", "Regras espaciais", "ok"],
-      ["Sensores em drift", "6", "−3", "De 1.284 devices", "watch"],
+      ["Fontes online", "147 / 153", "96,1%", "6 em modo degradado", "watch"],
+      ["Devices online", "1.842 / 1.911", "96,4%", "3 críticos indisponíveis", "watch"],
+      ["Qualidade de dados", "94,7%", "108 rejeitados/s", "RAW preservado com flag", "watch"],
+      ["Latência crítica P95", "1,8 s", "SLA 5 s", "7 incidentes · 2 críticos", "ok"],
     ),
-    features: ["Catálogo de devices", "Ingestão IoT", "Qualidade em tempo real", "Cobertura e redundância", "Data products e linhagem", "Store-and-forward"],
-    flow: ["Cadastrar fonte", "Configurar conexão", "Validar esquema/local", "Publicar feed", "Monitorar qualidade", "Abrir incidente", "Reconciliar"],
-    forms: ["Sensor/device", "Fonte e integração", "Regra de qualidade", "Calibração", "Data product e incidente"],
+    features: ["Industrial Data Fabric L0–L7", "Catálogo de fontes e produtos", "Device & sensor operations", "Quality flags e fallback", "Linhagem ponta a ponta", "Blast radius", "Store-and-forward", "HA, observabilidade e DR"],
+    flow: ["Capturar", "Transmitir", "Receber", "Validar", "Normalizar", "Georreferenciar", "Enriquecer", "Publicar", "Monitorar", "Armazenar", "Rastrear", "Recuperar"],
+    forms: ["Fonte e contrato", "Device / sensor / gateway", "Regra de qualidade", "Schema", "Pipeline", "Incidente de dados", "Manutenção", "Plano de recovery"],
     inputs: ["MQTT / OPC-UA", "APIs e arquivos", "SCADA / Historian", "Satélite", "Serviços externos"],
     outputs: ["Feeds e layers", "Score de confiança", "Alertas de qualidade", "Catálogo", "SLA e evidências"],
     reports: ["Disponibilidade", "Latência e cobertura", "Qualidade", "Calibração", "Consumo de APIs"],
     charts: ["Uptime", "Latência", "Completude", "Mapa de cobertura", "Sensor drift"],
     external: ["APIs meteorológicas", "Living Atlas", "IoT parceiros", "Dados públicos", "Satélite"],
     internal: ["ArcGIS Velocity", "Lakehouse", "Broker MQTT", "SCADA", "ITSM / Observabilidade"],
-    agents: ["GUARDIÃO Dados", "DRIFT Detector", "RECONCILIA Espacial"],
+    agents: ["DATA GUARDIAN", "SOURCE GUARDIAN", "QUALITY", "SCHEMA GUARDIAN", "LATENCY", "DRIFT", "SPATIAL", "DEPENDENCY", "COVERAGE", "DEVICE HEALTH", "MAINTENANCE DISPATCHER", "API GUARDIAN", "BACKLOG", "SPOF", "RECOVERY", "CHANGE IMPACT"],
     jobs: [
       { id: "DAT-901", item: "Reconciliar sensor PLU-044 congelado", owner: "GUARDIÃO", due: "13:42", status: "Modo degradado", priority: "Crítica" },
       { id: "MNT-388", item: "Despachar manutenção na estação MET-03", owner: "TI/OT", due: "14:15", status: "Atribuída", priority: "Alta" },
@@ -475,17 +479,17 @@ const workspaces: Workspace[] = [
     shortTitle: "Governança",
     mission: "Controlar versões, responsabilidades, modelos, limiares, decisões, evidências, acessos e mudanças.",
     result: "Toda recomendação e decisão reproduzível por dados, versão, responsável, horário e evidência.",
-    status: "2 pendências",
+    status: "Health 92/100 · 3 exceções críticas",
     tone: "watch",
     badge: 2,
     metrics: makeMetrics(
-      ["Modelos vigentes", "37 / 39", "+1", "2 em validação", "watch"],
-      ["Limiar sem revisão", "2", "−3", "Vencem em 14 dias", "watch"],
-      ["Evidências completas", "97,8%", "+1,4 pp", "Eventos últimos 30d", "ok"],
-      ["Exceções abertas", "4", "−2", "1 alta criticidade", "alert"],
+      ["Controles efetivos", "96,4%", "281 / 292", "Continuous assurance", "ok"],
+      ["Decisões críticas auditáveis", "100%", "48 / 48", "Snapshots reproduzíveis", "ok"],
+      ["Modelos válidos", "27 / 29", "2 bloqueados", "Validação e uso permitido", "watch"],
+      ["Exceções abertas", "12", "3 críticas", "Override com expiração", "critical"],
     ),
-    features: ["Model registry", "Threshold registry", "Evidence ledger", "Controle de mudança", "Segregação de acesso", "Monitoramento de drift"],
-    flow: ["Cadastrar artefato", "Validar técnico/operacional", "Aprovar", "Publicar versão", "Monitorar uso", "Abrir mudança", "Revisar e retirar"],
+    features: ["Decision governance", "Evidence graph e vault", "Tamper-evident ledger", "Policies as code", "Controles contínuos", "Authority & SOD", "Model / threshold / AI governance", "Overrides, exceções e aceites", "Reprodutibilidade e assurance"],
+    flow: ["Registrar contexto", "Validar artefatos", "Avaliar policies", "Aprovar com quorum", "Criar DecisionSnapshot", "Executar e evidenciar", "Monitorar controles", "Reproduzir", "Emitir assurance"],
     forms: ["Ficha de modelo", "Limiar", "Mudança", "Aprovação e exceção", "Evidência e revisão"],
     inputs: ["Modelos e parâmetros", "Dados e regras", "Decisões e logs", "Usuários", "Documentos"],
     outputs: ["Versão vigente", "Trilha de auditoria", "Pacote de evidências", "Alerta de drift", "Plano de ação"],
@@ -493,7 +497,7 @@ const workspaces: Workspace[] = [
     charts: ["Status por estágio", "Aging", "Drift", "Cobertura de validação", "Heatmap de acesso"],
     external: ["IPCC / WMO", "Normas ISO", "Referenciais Esri", "Regulação", "Academia"],
     internal: ["IAM / SIEM", "GRC", "MLOps", "Documentos", "Todos os workspaces"],
-    agents: ["LEDGER Evidências", "POLÍTICA Limiares", "CONFORME Auditor"],
+    agents: ["GOVERNANCE ORCHESTRATOR", "POLICY GUARDIAN", "EVIDENCE AUDITOR", "MODEL GOVERNANCE", "THRESHOLD GOVERNANCE", "AI GOVERNANCE", "DECISION AUDITOR", "ACCESS GOVERNANCE", "EXCEPTION", "COMPLIANCE MAPPING", "REPRODUCIBILITY", "CONTROL MONITOR", "CHANGE IMPACT"],
     jobs: [
       { id: "GOV-442", item: "Aprovar modelo HIDRO-2D v3.8", owner: "Comitê de Modelos", due: "14:00", status: "Revisão independente", priority: "Crítica" },
       { id: "THR-091", item: "Revalidar limiar D-04 de extravasamento", owner: "Engenharia", due: "Amanhã", status: "Evidência pendente", priority: "Alta" },
@@ -691,15 +695,19 @@ function ArcGISMap({
         async () => {
           if (cancelled) return;
           try {
-            const [GraphicsLayer, Graphic, FeatureLayer, ImageryLayer] = await arcgis.import([
+            const [GraphicsLayer, Graphic, FeatureLayer, ImageryLayer, GeoJSONLayer, MapImageLayer] = await arcgis.import([
               "@arcgis/core/layers/GraphicsLayer.js",
               "@arcgis/core/Graphic.js",
               "@arcgis/core/layers/FeatureLayer.js",
               "@arcgis/core/layers/ImageryLayer.js",
+              "@arcgis/core/layers/GeoJSONLayer.js",
+              "@arcgis/core/layers/MapImageLayer.js",
             ]);
 
             const assetLayer = new GraphicsLayer({ title: "Ativos críticos · Vale" });
             const riskLayer = new GraphicsLayer({ title: "Impacto simulado P90" });
+            const territoryLayer = new GraphicsLayer({ title: "Comunidades e áreas territoriais" });
+            const receptorLayer = new GraphicsLayer({ title: "Receptores sensíveis" });
             const assets = [
               { id: "MV-ATLAS", name: "Terminal Marítimo · Berço 2", x: -40.242, y: -20.282, state: "Atenção", capacity: "Janela +3h20", color: [242, 164, 61, 1] },
               { id: "PATIO-N", name: "Pátio Norte", x: -40.252, y: -20.279, state: "Vigilância", capacity: "91%", color: [242, 164, 61, 1] },
@@ -748,6 +756,28 @@ function ArcGISMap({
               }),
             );
 
+            [
+              { id: "C-07", name: "Comunidade C-07", pop: "2.480", rings: [[[-40.271,-20.292],[-40.262,-20.295],[-40.257,-20.290],[-40.261,-20.285],[-40.269,-20.286],[-40.271,-20.292]]] },
+              { id: "C-03", name: "Comunidade C-03", pop: "3.120", rings: [[[-40.266,-20.279],[-40.258,-20.282],[-40.254,-20.276],[-40.260,-20.271],[-40.267,-20.274],[-40.266,-20.279]]] },
+            ].forEach((area) => territoryLayer.add(new Graphic({
+              geometry: { type: "polygon", rings: area.rings },
+              symbol: { type: "simple-fill", color: [214,165,66,.13], outline: { color: [214,165,66,.9], width: 1.2, style: "dash" } },
+              attributes: { Id: area.id, Nome: area.name, Populacao: area.pop, Fonte: "Área operacional de referência · SIMULATED" },
+              popupTemplate: { title: "{Nome}", content: "População estimada: {Populacao}<br/>Fonte: {Fonte}" },
+            })));
+
+            [
+              { id: "E-014", name: "Escola E-014", type: "Educação", x: -40.264, y: -20.289, criticality: "Alta" },
+              { id: "US-03", name: "Unidade de Saúde US-03", type: "Saúde", x: -40.267, y: -20.284, criticality: "Crítica" },
+              { id: "L-03", name: "Lagoa L-03", type: "Ambiental", x: -40.258, y: -20.296, criticality: "Alta" },
+              { id: "V-EXT-04", name: "Acesso V-EXT-04", type: "Infraestrutura", x: -40.262, y: -20.292, criticality: "Crítica" },
+            ].forEach((receptor) => receptorLayer.add(new Graphic({
+              geometry: { type: "point", longitude: receptor.x, latitude: receptor.y },
+              symbol: { type: "simple-marker", style: receptor.type === "Ambiental" ? "triangle" : "circle", color: receptor.criticality === "Crítica" ? [199,67,79,1] : [210,138,46,1], size: 10, outline: { color: [255,255,255,.95], width: 1.5 } },
+              attributes: { ReceptorId: receptor.id, Nome: receptor.name, Tipo: receptor.type, Criticidade: receptor.criticality },
+              popupTemplate: { title: "{Nome}", content: "Tipo: {Tipo}<br/>Criticidade: {Criticidade}" },
+            })));
+
             const viirs = new FeatureLayer({
               portalItem: { id: "dece90af1a0242dcbf0ca36d30276aa3" },
               title: "VIIRS Thermal Hotspots · Living Atlas",
@@ -760,11 +790,26 @@ function ArcGISMap({
               visible: layerVisibility.landCover,
               opacity: 0.5,
             });
+            const geobases = new MapImageLayer({
+              url: "https://gis.geobases.es.gov.br/server/rest/services/gb/IJSN_SEDU_Edificacoes_de_Ensino_ES/MapServer",
+              title: "Edificações de ensino · GeoBases ES",
+              visible: layerVisibility.geobases,
+              opacity: 0.72,
+            });
+            const ibge = new GeoJSONLayer({
+              url: "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/3205309?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio",
+              title: "Malha municipal de Vitória · IBGE",
+              visible: layerVisibility.ibge,
+              opacity: 0.18,
+              renderer: { type: "simple", symbol: { type: "simple-fill", color: [91,107,176,.08], outline: { color: [126,142,210,.9], width: 1.2 } } },
+            });
 
             assetLayer.visible = layerVisibility.assets;
             riskLayer.visible = layerVisibility.risk;
-            layerRefs.current = { assets: assetLayer, risk: riskLayer, viirs, landCover };
-            mapEl.map.addMany([landCover, viirs, riskLayer, assetLayer]);
+            territoryLayer.visible = layerVisibility.territory;
+            receptorLayer.visible = layerVisibility.receptors;
+            layerRefs.current = { assets: assetLayer, risk: riskLayer, territory: territoryLayer, receptors: receptorLayer, geobases, ibge, viirs, landCover };
+            mapEl.map.addMany([landCover, ibge, geobases, viirs, territoryLayer, riskLayer, receptorLayer, assetLayer]);
 
             if (mapEl.view?.on && onAssetSelect) {
               clickHandle = mapEl.view.on("click", async (event: unknown) => {
@@ -775,9 +820,9 @@ function ArcGISMap({
               });
             }
 
-            const settled = await Promise.allSettled([viirs.load(), landCover.load()]);
+            const settled = await Promise.allSettled([viirs.load(), landCover.load(), geobases.load(), ibge.load()]);
             const loaded = settled.filter((item) => item.status === "fulfilled").length;
-            onMapStatus(`ArcGIS 5.1 · Living Atlas ${loaded}/2`);
+            onMapStatus(`ArcGIS 5.1 · fontes abertas ${loaded}/4`);
           } catch {
             onMapStatus("ArcGIS 5.1 · camada operacional ativa");
           }
@@ -844,7 +889,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [mapStatus, setMapStatus] = useState("Carregando ArcGIS 5.1…");
   const [now, setNow] = useState(new Date("2026-08-07T13:32:10-03:00"));
-  const [layers, setLayers] = useState<Record<string, boolean>>({ assets: true, risk: true, viirs: false, landCover: false });
+  const [layers, setLayers] = useState<Record<string, boolean>>({ assets: true, risk: true, territory: true, receptors: true, geobases: true, ibge: true, viirs: false, landCover: false });
   const [scenarioName, setScenarioName] = useState("Chuva extrema + maré elevada");
   const [horizon, setHorizon] = useState("+24H");
   const [profile, setProfile] = useState("Executivo");
@@ -855,7 +900,7 @@ export default function Home() {
 
   const active = useMemo(() => workspaces.find((item) => item.key === activeKey) ?? workspaces[0], [activeKey]);
   const catalogModule = useMemo(() => workspaces.find((item) => item.key === catalogKey) ?? workspaces[0], [catalogKey]);
-  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : activeKey === "hazards" ? hazardScenarioStages : activeKey === "twin" ? twinScenarioStages : activeKey === "chain" ? chainScenarioStages : activeKey === "planning" ? planningScenarioStages : activeKey === "emergency" ? emergencyScenarioStages : scenarioStages;
+  const activeScenarioStages = activeKey === "climate" ? climateScenarioStages : activeKey === "hazards" ? hazardScenarioStages : activeKey === "twin" ? twinScenarioStages : activeKey === "chain" ? chainScenarioStages : activeKey === "planning" ? planningScenarioStages : activeKey === "emergency" ? emergencyScenarioStages : activeKey === "environment" ? environmentScenarioStages : activeKey === "data" ? dataScenarioStages : activeKey === "governance" ? governanceScenarioStages : scenarioStages;
   const stage = activeScenarioStages[Math.min(scenarioStep, activeScenarioStages.length - 1)];
 
   useEffect(() => {
@@ -925,11 +970,39 @@ export default function Home() {
         setSelectedAsset("D-04");
         setFeed(emergencyBaseFeed.map((item, index) => ({ id: 810 + index, time: `18:41:${String(15 + index * 7).padStart(2, "0")}`, ...item })));
       }
+    } else if (hash.startsWith("#environment/")) {
+      const route = hash.replace(/^#environment\//, "");
+      const matchedTab = environmentTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("environment");
+        setSubview(matchedTab);
+        setScenarioStep(9);
+        setSelectedAsset("C-07");
+        setFeed(environmentBaseFeed.map((item, index) => ({ id: 910 + index, time: `19:34:${String(5 + index * 3).padStart(2, "0")}`, ...item })));
+      }
+    } else if (hash.startsWith("#data/")) {
+      const route = hash.replace(/^#data\//, "");
+      const matchedTab = dataTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("data");
+        setSubview(matchedTab);
+        setScenarioStep(5);
+        setFeed(dataBaseFeed.map((item, index) => ({ id: 1010 + index, time: `09:25:${String(2 + index * 3).padStart(2, "0")}`, ...item })));
+      }
+    } else if (hash.startsWith("#governance/")) {
+      const route = hash.replace(/^#governance\//, "");
+      const matchedTab = governanceTabs.find((tab) => controlRouteSlug(tab) === route);
+      if (matchedTab) {
+        setActiveKey("governance");
+        setSubview(matchedTab);
+        setScenarioStep(6);
+        setFeed(governanceBaseFeed.map((item, index) => ({ id: 1110 + index, time: `19:45:${String(1 + index * 3).padStart(2, "0")}`, ...item })));
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && activeKey !== "chain" && activeKey !== "planning" && activeKey !== "emergency") return;
+    if (activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && activeKey !== "chain" && activeKey !== "planning" && activeKey !== "emergency" && activeKey !== "environment" && activeKey !== "data" && activeKey !== "governance") return;
     window.history.replaceState(null, "", `#${activeKey}/${controlRouteSlug(subview)}`);
   }, [activeKey, subview]);
 
@@ -956,15 +1029,15 @@ export default function Home() {
   useEffect(() => {
     if (scenarioStep === lastScenarioFeed.current) return;
     lastScenarioFeed.current = scenarioStep;
-    const entry = (activeKey === "climate" ? climateScenarioFeed : activeKey === "hazards" ? hazardScenarioFeed : activeKey === "twin" ? twinScenarioFeed : activeKey === "chain" ? chainScenarioFeed : activeKey === "planning" ? planningScenarioFeed : activeKey === "emergency" ? emergencyScenarioFeed : scenarioFeed)[scenarioStep];
+    const entry = (activeKey === "climate" ? climateScenarioFeed : activeKey === "hazards" ? hazardScenarioFeed : activeKey === "twin" ? twinScenarioFeed : activeKey === "chain" ? chainScenarioFeed : activeKey === "planning" ? planningScenarioFeed : activeKey === "emergency" ? emergencyScenarioFeed : activeKey === "environment" ? environmentScenarioFeed : activeKey === "data" ? dataScenarioFeed : activeKey === "governance" ? governanceScenarioFeed : scenarioFeed)[scenarioStep];
     if (entry) {
       setFeed((items) => [
         { id: Date.now(), time: now.toLocaleTimeString("pt-BR", { hour12: false }), ...entry },
         ...items,
       ].slice(0, 8));
     }
-    if ((activeKey === "control" && scenarioStep === 11) || (activeKey === "emergency" && scenarioStep >= 8 && scenarioStep < 14)) setIncidentMode(true);
-    if (activeKey === "emergency" && scenarioStep >= 14) setIncidentMode(false);
+    if ((activeKey === "control" && scenarioStep === 11) || (activeKey === "emergency" && scenarioStep >= 8 && scenarioStep < 14) || (activeKey === "environment" && scenarioStep >= 4 && scenarioStep < 13)) setIncidentMode(true);
+    if ((activeKey === "emergency" || activeKey === "environment") && scenarioStep >= 14) setIncidentMode(false);
   }, [activeKey, scenarioStep, now]);
 
   useEffect(() => {
@@ -983,12 +1056,12 @@ export default function Home() {
 
   const selectWorkspace = (key: string) => {
     setActiveKey(key);
-    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : key === "hazards" ? "Situação Multiameaças" : key === "twin" ? "Situação Operacional" : key === "chain" ? "Situação da Cadeia" : key === "planning" ? "Situação do Plano" : key === "emergency" ? "Situação" : "Visão geral");
-    setScenarioStep(key === "control" ? 2 : key === "twin" ? 3 : key === "chain" ? 10 : key === "planning" ? 9 : key === "emergency" ? 7 : 0);
+    setSubview(key === "control" ? "Situação integrada" : key === "climate" ? "Visão Geral" : key === "hazards" ? "Situação Multiameaças" : key === "twin" ? "Situação Operacional" : key === "chain" ? "Situação da Cadeia" : key === "planning" ? "Situação do Plano" : key === "emergency" ? "Situação" : key === "environment" ? "Situação Territorial" : key === "data" || key === "governance" ? "Situação" : "Visão geral");
+    setScenarioStep(key === "control" ? 2 : key === "twin" ? 3 : key === "chain" ? 10 : key === "planning" ? 9 : key === "emergency" ? 7 : key === "environment" ? 9 : key === "data" ? 5 : key === "governance" ? 6 : 0);
     setScenarioRunning(false);
     setIncidentMode(false);
-    setFeed(key === "climate" ? climateBaseFeed : key === "hazards" ? hazardInitialFeed : key === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : key === "chain" ? chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })) : key === "planning" ? planningBaseFeed.map((item, index) => ({ id: 610 + index, time: `18:45:${String(44 + index * 3).padStart(2, "0")}`, ...item })) : key === "emergency" ? emergencyBaseFeed.map((item, index) => ({ id: 810 + index, time: `18:41:${String(15 + index * 7).padStart(2, "0")}`, ...item })) : baseFeed);
-    lastScenarioFeed.current = key === "control" ? 2 : key === "twin" ? 3 : key === "chain" ? 10 : key === "planning" ? 9 : key === "emergency" ? 7 : 0;
+    setFeed(key === "climate" ? climateBaseFeed : key === "hazards" ? hazardInitialFeed : key === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : key === "chain" ? chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })) : key === "planning" ? planningBaseFeed.map((item, index) => ({ id: 610 + index, time: `18:45:${String(44 + index * 3).padStart(2, "0")}`, ...item })) : key === "emergency" ? emergencyBaseFeed.map((item, index) => ({ id: 810 + index, time: `18:41:${String(15 + index * 7).padStart(2, "0")}`, ...item })) : key === "environment" ? environmentBaseFeed.map((item, index) => ({ id: 910 + index, time: `19:34:${String(5 + index * 3).padStart(2, "0")}`, ...item })) : key === "data" ? dataBaseFeed.map((item, index) => ({ id: 1010 + index, time: `09:25:${String(2 + index * 3).padStart(2, "0")}`, ...item })) : key === "governance" ? governanceBaseFeed.map((item, index) => ({ id: 1110 + index, time: `19:45:${String(1 + index * 3).padStart(2, "0")}`, ...item })) : baseFeed);
+    lastScenarioFeed.current = key === "control" ? 2 : key === "twin" ? 3 : key === "chain" ? 10 : key === "planning" ? 9 : key === "emergency" ? 7 : key === "environment" ? 9 : key === "data" ? 5 : key === "governance" ? 6 : 0;
   };
 
   const approveDecision = () => {
@@ -1023,7 +1096,7 @@ export default function Home() {
     setScenarioRunning(false);
     setIncidentMode(false);
     setDecisionState("Aguardando aprovação");
-    setFeed(activeKey === "climate" ? climateBaseFeed : activeKey === "hazards" ? hazardInitialFeed : activeKey === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : activeKey === "chain" ? chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })) : activeKey === "planning" ? planningBaseFeed.map((item, index) => ({ id: 610 + index, time: `18:45:${String(44 + index * 3).padStart(2, "0")}`, ...item })) : activeKey === "emergency" ? emergencyBaseFeed.map((item, index) => ({ id: 810 + index, time: `18:41:${String(15 + index * 7).padStart(2, "0")}`, ...item })) : baseFeed);
+    setFeed(activeKey === "climate" ? climateBaseFeed : activeKey === "hazards" ? hazardInitialFeed : activeKey === "twin" ? twinBaseFeed.map((item, index) => ({ id: 410 + index, time: `18:45:${String(24 + index * 2).padStart(2, "0")}`, ...item })) : activeKey === "chain" ? chainBaseFeed.map((item, index) => ({ id: 510 + index, time: `18:45:${String(31 + index * 3).padStart(2, "0")}`, ...item })) : activeKey === "planning" ? planningBaseFeed.map((item, index) => ({ id: 610 + index, time: `18:45:${String(44 + index * 3).padStart(2, "0")}`, ...item })) : activeKey === "emergency" ? emergencyBaseFeed.map((item, index) => ({ id: 810 + index, time: `18:41:${String(15 + index * 7).padStart(2, "0")}`, ...item })) : activeKey === "environment" ? environmentBaseFeed.map((item, index) => ({ id: 910 + index, time: `19:34:${String(5 + index * 3).padStart(2, "0")}`, ...item })) : activeKey === "data" ? dataBaseFeed.map((item, index) => ({ id: 1010 + index, time: `09:25:${String(2 + index * 3).padStart(2, "0")}`, ...item })) : activeKey === "governance" ? governanceBaseFeed.map((item, index) => ({ id: 1110 + index, time: `19:45:${String(1 + index * 3).padStart(2, "0")}`, ...item })) : baseFeed);
     lastScenarioFeed.current = 0;
     setToast("Cenário reiniciado com seed 2417");
   };
@@ -1050,7 +1123,7 @@ export default function Home() {
     setToast("HSIG-1032 publicado · Torre, Gêmeo, Planejamento e Emergência notificados");
   };
 
-  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : activeKey === "hazards" ? hazardTabs : activeKey === "twin" ? twinTabs : activeKey === "chain" ? chainTabs : activeKey === "planning" ? planningTabs : activeKey === "emergency" ? emergencyTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
+  const tabNames = activeKey === "control" ? controlTabs : activeKey === "climate" ? climateTabs : activeKey === "hazards" ? hazardTabs : activeKey === "twin" ? twinTabs : activeKey === "chain" ? chainTabs : activeKey === "planning" ? planningTabs : activeKey === "emergency" ? emergencyTabs : activeKey === "environment" ? environmentTabs : activeKey === "data" ? dataTabs : activeKey === "governance" ? governanceTabs : ["Visão geral", "Mapa vivo", "Workflows", "Relatórios", "Integrações"];
   const timeLabel = now.toLocaleTimeString("pt-BR", { hour12: false, timeZone: "America/Sao_Paulo" });
 
   return (
@@ -1082,6 +1155,9 @@ export default function Home() {
           {activeKey === "chain" ? <div className="control-sidebar-subnav chain-sidebar-subnav"><span>CADEIA E GARGALOS</span>{chainTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Restrições" ? <b>4</b> : tab === "Compromissos" ? <b>1</b> : null}</button>)}</div> : null}
           {activeKey === "planning" ? <div className="control-sidebar-subnav planning-sidebar-subnav"><span>PLANEJAMENTO E CENÁRIOS</span>{planningTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Alternativas & Decisão" ? <b>1</b> : tab === "Aderência & Replan" ? <b>2</b> : null}</button>)}</div> : null}
           {activeKey === "emergency" ? <div className="control-sidebar-subnav emergency-sidebar-subnav"><span>EMERGÊNCIA E CONTINUIDADE</span>{emergencyTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Alertas" ? <b>4</b> : tab === "Incidentes" ? <b>1</b> : tab === "Tarefas" ? <b>3</b> : null}</button>)}</div> : null}
+          {activeKey === "environment" ? <div className="control-sidebar-subnav environment-sidebar-subnav"><span>AMBIENTE, SOCIEDADE E ENTORNO</span>{environmentTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Ocorrências" ? <b>5</b> : tab === "Campo" ? <b>4</b> : tab === "Comunicação" ? <b>3</b> : null}</button>)}</div> : null}
+          {activeKey === "data" ? <div className="control-sidebar-subnav"><span>DADOS, SENSORES E INFRAESTRUTURA</span>{dataTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Incidentes" ? <b>7</b> : tab === "Sensores" ? <b>3</b> : null}</button>)}</div> : null}
+          {activeKey === "governance" ? <div className="control-sidebar-subnav"><span>GOVERNANÇA E AUDITORIA</span>{governanceTabs.map((tab) => <button className={subview === tab ? "active" : ""} key={tab} onClick={() => setSubview(tab)}><i />{tab}{tab === "Aprovações" ? <b>7</b> : tab === "Exceções" ? <b>12</b> : null}</button>)}</div> : null}
         </nav>
 
         <div className="sidebar-actions">
@@ -1126,7 +1202,7 @@ export default function Home() {
         </header>
 
         <div className="incident-strip">
-          <div><span className="incident-symbol">!</span><strong>{activeKey === "emergency" ? "INC-024 · Modo comando N3" : "Modo incidente N2"}</strong><span>{activeKey === "emergency" ? "Inundação · OP-01 · 7 equipes" : "Chuva extrema · comando preparado"}</span></div>
+          <div><span className="incident-symbol">!</span><strong>{activeKey === "emergency" ? "INC-024 · Modo comando N3" : activeKey === "environment" ? "TS-081 · Impacto territorial HIGH" : "Modo incidente N2"}</strong><span>{activeKey === "emergency" ? "Inundação · OP-01 · 7 equipes" : activeKey === "environment" ? "C-07 · 4.820 pessoas · V-EXT-04" : "Chuva extrema · comando preparado"}</span></div>
           <button onClick={() => setIncidentMode(false)}>Sair do modo incidente</button>
         </div>
 
@@ -1140,10 +1216,10 @@ export default function Home() {
             <div className="heading-actions">
               <StatusPill tone={active.tone}>{active.status}</StatusPill>
               <button className="secondary-button" onClick={() => { setCatalogKey(active.key); setCatalogOpen(true); }}>Ficha do módulo</button>
-              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : activeKey === "hazards" ? () => setSubview("Execuções") : activeKey === "twin" ? () => setSubview("Inspeções") : activeKey === "chain" ? () => setSubview("Restrições") : activeKey === "planning" ? () => setSubview("Cenários") : activeKey === "emergency" ? () => setSubview("Incidentes") : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : activeKey === "hazards" ? "＋ Novo model run" : activeKey === "twin" ? "＋ Nova vistoria" : activeKey === "chain" ? "＋ Nova restrição" : activeKey === "planning" ? "＋ Novo cenário" : activeKey === "emergency" ? "＋ Declarar incidente" : "＋ Novo despacho"}</button>
+              <button className="primary-button" onClick={activeKey === "climate" ? publishClimateSignal : activeKey === "hazards" ? () => setSubview("Execuções") : activeKey === "twin" ? () => setSubview("Inspeções") : activeKey === "chain" ? () => setSubview("Restrições") : activeKey === "planning" ? () => setSubview("Cenários") : activeKey === "emergency" ? () => setSubview("Incidentes") : activeKey === "environment" ? () => setSubview("Ocorrências") : activeKey === "data" ? () => setSubview("Incidentes") : activeKey === "governance" ? () => setSubview("Aprovações") : () => setDispatchOpen(true)}>{activeKey === "climate" ? "＋ Publicar sinal" : activeKey === "hazards" ? "＋ Novo model run" : activeKey === "twin" ? "＋ Nova vistoria" : activeKey === "chain" ? "＋ Nova restrição" : activeKey === "planning" ? "＋ Novo cenário" : activeKey === "emergency" ? "＋ Declarar incidente" : activeKey === "environment" ? "＋ Nova ocorrência" : activeKey === "data" ? "＋ Novo incidente" : activeKey === "governance" ? "＋ Nova aprovação" : "＋ Novo despacho"}</button>
             </div>
           </div>
-          {activeKey === "control" || activeKey === "climate" || activeKey === "hazards" || activeKey === "twin" || activeKey === "chain" || activeKey === "planning" || activeKey === "emergency" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : activeKey === "planning" ? ["AGORA", "+6H", "+12H", "+24H", "+48H", "+72H", "7D", "CENÁRIO"] : activeKey === "emergency" ? ["AGORA", "+30M", "+2H", "+6H", "+12H", "OP-01", "RECOVERY"] : activeKey === "hazards" || activeKey === "twin" || activeKey === "chain" ? ["AGORA", "+1H", "+3H", "+6H", "+12H", "+24H", "CENÁRIO"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : activeKey === "hazards" ? "HazardContext" : activeKey === "twin" ? "AssetContext" : activeKey === "chain" ? "ChainContext" : activeKey === "planning" ? "ScenarioContext" : activeKey === "emergency" ? "IncidentContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : activeKey === "hazards" ? "HMR-882 · HS-882" : activeKey === "twin" ? `${selectedAsset} · HS-882` : activeKey === "chain" ? `PR-881 · BOT-022 · ${selectedAsset}` : activeKey === "planning" ? "SCN-0184 · PLN-v18 → ALT-B" : activeKey === "emergency" ? "AL-0187 · ACT-019 · INC-024" : selectedAsset} · {stage.label}</small></div></div> : null}
+          {activeKey === "control" || activeKey === "climate" || activeKey === "hazards" || activeKey === "twin" || activeKey === "chain" || activeKey === "planning" || activeKey === "emergency" || activeKey === "environment" || activeKey === "data" || activeKey === "governance" ? <div className="operational-context-bar"><div className="horizon-control"><span>HORIZONTE</span>{(activeKey === "climate" ? ["AGORA", "+6H", "+24H", "+72H", "15D", "6M", "2050"] : activeKey === "planning" ? ["AGORA", "+6H", "+12H", "+24H", "+48H", "+72H", "7D", "CENÁRIO"] : activeKey === "emergency" ? ["AGORA", "+30M", "+2H", "+6H", "+12H", "OP-01", "RECOVERY"] : activeKey === "environment" ? ["AGORA", "+1H", "+3H", "+6H", "+12H", "EVENTO", "RECOVERY"] : activeKey === "data" ? ["AGORA", "+5M", "+30M", "+2H", "+6H", "INCIDENTE", "RECOVERY"] : activeKey === "governance" ? ["AGORA", "DECISÃO", "EVENTO", "30D", "90D", "AUDIT", "REPLAY"] : activeKey === "hazards" || activeKey === "twin" || activeKey === "chain" ? ["AGORA", "+1H", "+3H", "+6H", "+12H", "+24H", "CENÁRIO"] : ["AGORA", "+6H", "+24H", "+72H", "7D", "30D", "CENÁRIO"]).map((item) => <button className={horizon === item ? "active" : ""} key={item} onClick={() => { setHorizon(item); setToast(`Contexto sincronizado em ${item}: mapa, gráficos, probabilidades e briefing`); }}>{item}</button>)}</div><div className="context-summary"><span>{activeKey === "climate" ? "ClimateContext" : activeKey === "hazards" ? "HazardContext" : activeKey === "twin" ? "AssetContext" : activeKey === "chain" ? "ChainContext" : activeKey === "planning" ? "ScenarioContext" : activeKey === "emergency" ? "IncidentContext" : activeKey === "environment" ? "TerritorialContext" : activeKey === "data" ? "DataQualityContext" : activeKey === "governance" ? "GovernanceContext" : "OperationalContext"}</span><strong>Tubarão · {horizon} · {scenarioName}</strong><small>{profile} · {activeKey === "climate" ? "FR-2204" : activeKey === "hazards" ? "HMR-882 · HS-882" : activeKey === "twin" ? `${selectedAsset} · HS-882` : activeKey === "chain" ? `PR-881 · BOT-022 · ${selectedAsset}` : activeKey === "planning" ? "SCN-0184 · PLN-v18 → ALT-B" : activeKey === "emergency" ? "AL-0187 · ACT-019 · INC-024" : activeKey === "environment" ? "TS-081 · C-07 · OCC-GROUP-018" : activeKey === "data" ? "GW-03 · NIV-04 · 147/153 sources" : activeKey === "governance" ? "DEC-0248 · DS-0248 · POL-OPS-17" : selectedAsset} · {stage.label}</small></div></div> : null}
           <div className="subnav" role="tablist" aria-label={`Navegação de ${active.title}`}>
             {tabNames.map((tab) => <button key={tab} role="tab" aria-selected={subview === tab} className={subview === tab ? "active" : ""} onClick={() => setSubview(tab)}>{tab}</button>)}
           </div>
@@ -1288,10 +1364,71 @@ export default function Home() {
             onChain={() => { selectWorkspace("chain"); setSubview("Recuperação"); setToast("RP-024 e milestones de recovery abertos no Módulo 5"); }}
             onPlanning={() => { selectWorkspace("planning"); setSubview("Plano Aprovado"); setToast("PLN-v19 e ações preventivas abertos no Módulo 6"); }}
             onRisk={() => { selectWorkspace("risk"); setSubview("Visão geral"); setToast("Danos, downtime, recursos e recovery enviados ao Módulo 7"); }}
-            onTerritory={() => { selectWorkspace("environment"); setSubview("Visão geral"); setToast("INC-024 e TUB-NORTH enviados à análise territorial do Módulo 9"); }}
+            onTerritory={() => { selectWorkspace("environment"); setSubview("Situação Territorial"); setToast("INC-024 e HMR-882 enviados à análise territorial do Módulo 9"); }}
           /> : null}
 
-          {activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && activeKey !== "chain" && activeKey !== "planning" && activeKey !== "emergency" && subview === "Visão geral" && (
+          {activeKey === "environment" ? <EnvironmentModule
+            subview={subview}
+            horizon={horizon}
+            profile={profile}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            mapStatus={mapStatus}
+            layers={layers}
+            renderMap={() => <ArcGISMap activeWorkspace={active} layerVisibility={layers} onMapStatus={setMapStatus} onAssetSelect={setSelectedAsset} />}
+            onToggleLayer={(key) => setLayers((value) => ({ ...value, [key]: !value[key] }))}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+            onTower={() => { selectWorkspace("control"); setSubview("Situação integrada"); setToast("TS-081, população, receptores e decisão material abertos na Torre"); }}
+            onHazards={() => { selectWorkspace("hazards"); setSubview("Hidrologia & Inundação"); setToast("HMR-882 e HazardSurface abertos no Módulo 3"); }}
+            onTwin={() => { selectWorkspace("twin"); setSubview("Situação Operacional"); setSelectedAsset("SE-04"); setToast("External utility disruption aberto no Gêmeo Operacional"); }}
+            onPlanning={() => { selectWorkspace("planning"); setSubview("Aderência & Replan"); setToast("TerritorialConstraint e rota +18 min abertos no Módulo 6"); }}
+            onRisk={() => { selectWorkspace("risk"); setSubview("Visão geral"); setToast("Materialidade ambiental, social e custo de recovery enviados ao Módulo 7"); }}
+            onEmergency={() => { selectWorkspace("emergency"); setSubview("Situação"); setToast("TS-081 e receptores críticos abertos no Módulo 8"); }}
+          /> : null}
+
+          {activeKey === "data" ? <DataModule
+            subview={subview}
+            horizon={horizon}
+            profile={profile}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            mapStatus={mapStatus}
+            layers={layers}
+            renderMap={() => <ArcGISMap activeWorkspace={active} layerVisibility={layers} onMapStatus={setMapStatus} onAssetSelect={setSelectedAsset} />}
+            onToggleLayer={(key) => setLayers((value) => ({ ...value, [key]: !value[key] }))}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+            onTower={() => { selectWorkspace("control"); setSubview("Situação integrada"); setToast("DataQualityContext e blast radius abertos na Torre"); }}
+            onClimate={() => { selectWorkspace("climate"); setSubview("Observações"); setToast("Observações, fallback e quality flags abertos no Módulo 2"); }}
+            onHazards={() => { selectWorkspace("hazards"); setSubview("Execuções"); setToast("InputReadiness e confidence penalty abertos no Módulo 3"); }}
+            onTwin={() => { selectWorkspace("twin"); setSubview("Sensores & Saúde"); setToast("Device health e estado NIV-04 abertos no Módulo 4"); }}
+            onChain={() => { selectWorkspace("chain"); setSubview("Porto & Navios"); setToast("Feeds AIS/VTS e lineage abertos no Módulo 5"); }}
+            onPlanning={() => { selectWorkspace("planning"); setSubview("Restrições"); setToast("Disponibilidade dos dados consumidos pelo cenário aberta no Módulo 6"); }}
+            onRisk={() => { selectWorkspace("risk"); setSubview("Visão geral"); setToast("Confidence e exposição de dados enviados ao Módulo 7"); }}
+            onEmergency={() => { selectWorkspace("emergency"); setSubview("Comunicações"); setToast("Conectividade e field sync abertos no Módulo 8"); }}
+            onTerritory={() => { selectWorkspace("environment"); setSubview("Qualidade do Ar"); setToast("Sensores ambientais e cobertura abertos no Módulo 9"); }}
+            onGovernance={() => { selectWorkspace("governance"); setSubview("Evidências"); setToast("Linhagem de dados entregue ao grafo de evidências do Módulo 11"); }}
+          /> : null}
+
+          {activeKey === "governance" ? <GovernanceModule
+            subview={subview}
+            scenarioStep={scenarioStep}
+            stage={stage}
+            onAgents={() => setAgentOpen(true)}
+            onToast={setToast}
+            onTower={() => { selectWorkspace("control"); setSubview("Decisões"); setToast("DEC-0248 e seu DecisionSnapshot abertos na Torre"); }}
+            onData={() => { selectWorkspace("data"); setSubview("Linhagem"); setToast("Input snapshot, produtos e lineage abertos no Módulo 10"); }}
+            onHazards={() => { selectWorkspace("hazards"); setSubview("Execuções"); setToast("HMR-882, modelo v3.8 e validação abertos no Módulo 3"); }}
+            onTwin={() => { selectWorkspace("twin"); setSubview("Capacidade & Restrições"); setToast("Override de C17 e estado original abertos no Módulo 4"); }}
+            onChain={() => { selectWorkspace("chain"); setSubview("Causal Graph"); setToast("RootCauseTrace RCT-024 aberto no Módulo 5"); }}
+            onPlanning={() => { selectWorkspace("planning"); setSubview("Alternativas & Decisão"); setToast("ALT-B e aprovação de cenário abertos no Módulo 6"); }}
+            onRisk={() => { selectWorkspace("risk"); setSubview("Visão geral"); setToast("Aceite de risco, materialidade e autoridade do Módulo 7 abertos"); }}
+            onEmergency={() => { selectWorkspace("emergency"); setSubview("Evidências"); setToast("Evidências INC-024 abertas no Módulo 8"); }}
+            onTerritory={() => { selectWorkspace("environment"); setSubview("Comunicação"); setToast("Publication Gate e evidências territoriais abertos no Módulo 9"); }}
+          /> : null}
+
+          {activeKey !== "control" && activeKey !== "climate" && activeKey !== "hazards" && activeKey !== "twin" && activeKey !== "chain" && activeKey !== "planning" && activeKey !== "emergency" && activeKey !== "environment" && activeKey !== "data" && activeKey !== "governance" && subview === "Visão geral" && (
             <>
               <section className="metrics-grid" aria-label="Indicadores principais">
                 {liveMetrics.map((metric, index) => (
@@ -1425,7 +1562,7 @@ export default function Home() {
             </section>
           )}
 
-          {subview === "Relatórios" && activeKey !== "emergency" && (
+          {subview === "Relatórios" && activeKey !== "emergency" && activeKey !== "environment" && activeKey !== "data" && activeKey !== "governance" && (
             <section className="reports-view">
               <div className="report-summary-row"><article className="panel report-highlight"><span className="eyebrow">REPORT PACK</span><h2>{active.reports[0]}</h2><p>Gerado às 13:30 · fontes citadas · modelo e premissas versionados.</p><button className="primary-button" onClick={() => setToast("Relatório gerado e adicionado à trilha de evidências")}>Gerar relatório</button></article>{active.reports.slice(1).map((report, index) => <article className="panel report-card" key={report}><span className="report-type">{index % 2 ? "PDF" : "LIVE"}</span><h3>{report}</h3><p>Atualização automática · distribuição controlada</p><button>Visualizar →</button></article>)}</div>
               <div className="report-charts-grid">
@@ -1435,7 +1572,7 @@ export default function Home() {
             </section>
           )}
 
-          {subview === "Integrações" && (
+          {subview === "Integrações" && activeKey !== "data" && activeKey !== "governance" && (
             <section className="integrations-view">
               <article className="panel integration-hero"><div><span className="eyebrow">ARQUITETURA FEDERADA</span><h2>ArcGIS como backbone geoespacial</h2><p>Sistemas corporativos permanecem como registros oficiais; o GIS organiza localização, tempo, contexto e decisão.</p></div><div className="arcgis-core"><span>GIS</span><strong>ArcGIS Enterprise</strong><small>Maps · Velocity · Image · Knowledge · Workflow</small></div></article>
               <div className="integration-columns">
@@ -1450,8 +1587,8 @@ export default function Home() {
 
         <footer className="timeline-footer">
           <div className="timeline-controls"><button className="timeline-button" onClick={resetScenario} aria-label="Reiniciar cenário">↺</button><button className={`timeline-play ${scenarioRunning ? "playing" : ""}`} onClick={() => setScenarioRunning((value) => !value)} aria-label={scenarioRunning ? "Pausar cenário" : "Executar cenário"}>{scenarioRunning ? "Ⅱ" : "▶"}</button><button className="timeline-button" onClick={() => setScenarioStep((value) => Math.min(activeScenarioStages.length - 1, value + 1))} aria-label="Próximo evento">⏭</button><button className="speed-button" onClick={() => setSpeed((value) => value === 1 ? 5 : value === 5 ? 10 : value === 10 ? 60 : 1)}>{speed}×</button></div>
-          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : activeKey === "hazards" ? "hazard-timeline" : activeKey === "twin" ? "twin-timeline" : activeKey === "chain" ? "chain-timeline" : activeKey === "planning" ? "planning-timeline" : activeKey === "emergency" ? "emergency-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
-          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : activeKey === "hazards" ? "Model Factory" : activeKey === "twin" ? "Operational Twin" : activeKey === "chain" ? "Chain Engine" : activeKey === "planning" ? "Planning Orchestrator" : activeKey === "emergency" ? "Emergency Orchestrator" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : activeKey === "hazards" ? "HMR-882 · HS-882 · QA PASS · confidence 79%" : activeKey === "twin" ? "C17 · HS-882 · 6 fontes · confidence 79%" : activeKey === "chain" ? "PR-881 · BOT-022 · 9 fontes · confidence 74%" : activeKey === "planning" ? "SCN-0184 · PLN-v19 · robustness 86% · confidence 78%" : activeKey === "emergency" ? "AL-0187 · ACT-019 · INC-024 · Mission MIS-024" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => activeKey === "hazards" ? setSubview("Execuções") : activeKey === "twin" ? setSubview("Sensores & Saúde") : activeKey === "chain" || activeKey === "planning" || activeKey === "emergency" ? setSubview("Agentes & Integrações") : selectWorkspace("data")}>{activeKey === "climate" ? "98%" : activeKey === "hazards" ? "6/6" : activeKey === "twin" ? "94%" : activeKey === "chain" ? "74%" : activeKey === "planning" ? "86%" : activeKey === "emergency" ? "15/15" : "12/12"}</button></div>
+          <div className={`scenario-timeline ${activeKey === "climate" ? "climate-timeline" : activeKey === "hazards" ? "hazard-timeline" : activeKey === "twin" ? "twin-timeline" : activeKey === "chain" ? "chain-timeline" : activeKey === "planning" ? "planning-timeline" : activeKey === "emergency" ? "emergency-timeline" : activeKey === "environment" ? "environment-timeline" : activeKey === "data" ? "data-timeline" : activeKey === "governance" ? "governance-timeline" : ""}`}>{activeScenarioStages.map((item, index) => <button key={item.label} className={`${index === scenarioStep ? "active" : ""} ${index < scenarioStep ? "passed" : ""}`} onClick={() => setScenarioStep(index)}><span className={`tone-${item.tone}`}>{index < scenarioStep ? "✓" : ""}</span><div><strong>{item.time} · {item.label}</strong><small>{item.note}</small></div></button>)}</div>
+          <div className="footer-health"><span className="health-pulse" /><div><strong>{activeKey === "climate" ? "Climate Data Cube" : activeKey === "hazards" ? "Model Factory" : activeKey === "twin" ? "Operational Twin" : activeKey === "chain" ? "Chain Engine" : activeKey === "planning" ? "Planning Orchestrator" : activeKey === "emergency" ? "Emergency Orchestrator" : activeKey === "environment" ? "Territorial Orchestrator" : activeKey === "data" ? "Industrial Data Fabric" : activeKey === "governance" ? "Governance Control Plane" : "Dados operacionais"}</strong><small>{activeKey === "climate" ? "FR-2204 · QA 98% · 51 membros" : activeKey === "hazards" ? "HMR-882 · HS-882 · QA PASS · confidence 79%" : activeKey === "twin" ? "C17 · HS-882 · 6 fontes · confidence 79%" : activeKey === "chain" ? "PR-881 · BOT-022 · 9 fontes · confidence 74%" : activeKey === "planning" ? "SCN-0184 · PLN-v19 · robustness 86% · confidence 78%" : activeKey === "emergency" ? "AL-0187 · ACT-019 · INC-024 · Mission MIS-024" : activeKey === "environment" ? "TS-081 · C-07 · 4.820 estimate · confidence 78%" : activeKey === "data" ? "147/153 sources · 1.842 devices · quality 94,7%" : activeKey === "governance" ? "DEC-0248 · 96,4% controls · 100% critical auditability" : "Atualizado há 4,8 s · confiança 96,7%"}</small></div><button className="footer-status" onClick={() => activeKey === "hazards" ? setSubview("Execuções") : activeKey === "twin" ? setSubview("Sensores & Saúde") : activeKey === "chain" || activeKey === "planning" || activeKey === "emergency" || activeKey === "environment" || activeKey === "data" || activeKey === "governance" ? setSubview("Agentes & Integrações") : selectWorkspace("data")}>{activeKey === "climate" ? "98%" : activeKey === "hazards" ? "6/6" : activeKey === "twin" ? "94%" : activeKey === "chain" ? "74%" : activeKey === "planning" ? "86%" : activeKey === "emergency" ? "15/15" : activeKey === "environment" ? "15/15" : activeKey === "data" ? "16/16" : activeKey === "governance" ? "13/13" : "12/12"}</button></div>
         </footer>
       </section>
 
