@@ -6,6 +6,7 @@ import "../app/environment.css";
 import "../app/chain-v2.css";
 import "../app/platform-ops.css";
 import "../app/risk.css";
+import "../app/communications.css";
 
 const root = document.getElementById("root");
 
