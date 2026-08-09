@@ -5,6 +5,7 @@ import "./emergency.css";
 import "./environment.css";
 import "./chain-v2.css";
 import "./platform-ops.css";
+import "./risk.css";
 
 export const viewport: Viewport = {
   colorScheme: "light",
