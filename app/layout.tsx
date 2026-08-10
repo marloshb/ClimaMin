@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import "./enso.css";
 import "./emergency.css";
 import "./environment.css";
 import "./chain-v2.css";

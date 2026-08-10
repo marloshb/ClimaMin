@@ -17,7 +17,9 @@ type Props = {
   onAgents: () => void;
   onToast: (message: string) => void;
   onClimateSignal: () => void;
+  onClimateRegimeSignal: () => void;
   onHazards: () => void;
+  onOpenModule: (module: string, subview: string) => void;
 };
 
 export const climateTabs = [
@@ -30,6 +32,7 @@ export const climateTabs = [
   "Subseasonal",
   "Seasonal",
   "Drivers Climáticos",
+  "Super El Niño · ENSO",
   "Climatologia",
   "Anomalias",
   "Projeções",
@@ -206,7 +209,155 @@ function Seasonal(props: Props) {
 function Drivers(props: Props) {
   const [selected,setSelected] = useState("ENSO");
   const drivers = [["ENSO","El Niño forte","Alta","67%"],["Atlântico Sul","SST +0,8 °C","Alta","74%"],["MJO","Fase 8","Média","58%"],["SAM","Negativo","Baixa","42%"],["ZCAS","Favorável","Média","63%"],["SST costeira","+1,1 °C","Média","71%"]];
-  return <div className="climate-view drivers-view"><section className="driver-grid">{drivers.map(([name,state,importance,agreement]) => <button className={`panel driver-card ${selected===name?"selected":""}`} onClick={()=>setSelected(name)} key={name}><span>{name}</span><strong>{state}</strong><small>Importância {importance}</small><b>Concordância {agreement}</b></button>)}</section><section className="drivers-main"><article className="panel enso-card"><PanelHead eyebrow="PACÍFICO EQUATORIAL" title="ENSO · El Niño muito forte" side={<Pill tone="alert">IMPORTÂNCIA ALTA</Pill>} /><div className="enso-index"><span>Índice observado</span><strong>+2,1 °C</strong><b>↘ enfraquecendo</b></div><div className="enso-probs"><div><span>El Niño</span><i><b style={{width:"78%"}} /></i><strong>78%</strong></div><div><span>Neutro</span><i><b style={{width:"19%"}} /></i><strong>19%</strong></div><div><span>La Niña</span><i><b style={{width:"3%"}} /></i><strong>3%</strong></div></div></article><article className="panel teleconnection-card"><PanelHead eyebrow="AGENTE DE DRIVERS" title="Teleconexão global → local" /><div className="teleconnection-flow">{["ENSO","Circulação","Prob. regional","Downscaling","Tubarão"].map((item,index)=><div key={item}><span>{index+1}</span><strong>{item}</strong>{index<4?<b>→</b>:null}</div>)}</div><p>O fortalecimento do Pacífico aumenta o contexto de risco, mas o sinal sobre Tubarão permanece condicionado pelo Atlântico e pela circulação regional.</p><button className="climate-primary" onClick={()=>props.onToast(`Teleconexão ${selected} analisada · influência local moderada`)}>Analisar teleconexão</button></article></section></div>;
+  return <div className="climate-view drivers-view"><section className="driver-grid">{drivers.map(([name,state,importance,agreement]) => <button className={`panel driver-card ${selected===name?"selected":""}`} onClick={()=>setSelected(name)} key={name}><span>{name}</span><strong>{state}</strong><small>Importância {importance}</small><b>Concordância {agreement}</b></button>)}</section><section className="drivers-main"><article className="panel enso-card"><PanelHead eyebrow="PACÍFICO EQUATORIAL" title="ENSO · El Niño muito forte" side={<Pill tone="alert">IMPORTÂNCIA ALTA</Pill>} /><div className="enso-index"><span>Índice observado</span><strong>+2,1 °C</strong><b>↘ enfraquecendo</b></div><div className="enso-probs"><div><span>El Niño</span><i><b style={{width:"78%"}} /></i><strong>78%</strong></div><div><span>Neutro</span><i><b style={{width:"19%"}} /></i><strong>19%</strong></div><div><span>La Niña</span><i><b style={{width:"3%"}} /></i><strong>3%</strong></div></div></article><article className="panel teleconnection-card"><PanelHead eyebrow="AGENTE DE DRIVERS" title="Teleconexão global → local" /><div className="teleconnection-flow">{["ENSO","Circulação","Prob. regional","Downscaling","Tubarão"].map((item,index)=><div key={item}><span>{index+1}</span><strong>{item}</strong>{index<4?<b>→</b>:null}</div>)}</div><p>O fortalecimento do Pacífico aumenta o contexto de risco, mas o sinal sobre Tubarão permanece condicionado pelo Atlântico e pela circulação regional.</p><div className="climate-action-row"><button onClick={()=>props.onToast(`Teleconexão ${selected} analisada · influência local moderada`)}>Analisar teleconexão</button>{selected==="ENSO"?<button className="climate-primary" onClick={()=>props.onOpenModule("climate","Super El Niño · ENSO")}>Abrir cockpit ENSO</button>:null}</div></article></section></div>;
+}
+
+const climateRegimeSignal = {
+  id: "ENSO-026",
+  eventType: "climate.regime.updated",
+  regime: "ENSO",
+  phase: "EL_NINO",
+  classification: "VERY_STRONG_CANDIDATE",
+  status: "FORECAST",
+  primaryIndex: "RONI",
+  roniP50: "+1,8 °C",
+  roniP90: "+2,2 °C",
+  oniObserved: "+2,1 °C",
+  probabilityVeryStrong: "38%",
+  coupling: "ACOPLADO",
+  peak: "NDJ 2026/27",
+  localConfidence: "MODERADA",
+  issuedAt: "10 AGO 2026 · 11:40 BRT",
+};
+
+function SuperElNino(props: Props) {
+  const [scenario,setScenario] = useState("P50 · MUITO FORTE");
+  const [season,setSeason] = useState("NDJ");
+  const [layer,setLayer] = useState("Teleconexão");
+  const [published,setPublished] = useState(false);
+  const [publisherOpen,setPublisherOpen] = useState(false);
+  const [selectedAnalog,setSelectedAnalog] = useState("1997–98");
+  const outlook = [
+    {season:"SON",roni:"+1,5°",veryStrong:18,elNino:82,confidence:"MODERADA"},
+    {season:"OND",roni:"+1,7°",veryStrong:31,elNino:88,confidence:"MODERADA"},
+    {season:"NDJ",roni:"+1,8°",veryStrong:38,elNino:91,confidence:"MODERADA"},
+    {season:"DJF",roni:"+1,6°",veryStrong:27,elNino:84,confidence:"BAIXA–MOD."},
+  ];
+  const agents = [
+    ["11:40:07","ENSO MONITOR","RONI +1,8 °C consolidado","ok"],
+    ["11:40:10","COUPLING","oceano–atmosfera acoplado","ok"],
+    ["11:40:13","STRENGTH OUTLOOK","P(≥2,0 °C) atualizada para 38%","watch"],
+    ["11:40:16","TELECONNECTION","Atlântico Sul reduz sinal direto","info"],
+    ["11:40:19","LOCAL IMPACT","5 variáveis traduzidas para Tubarão","info"],
+    ["11:40:22","ANALOG FINDER","1997–98 lidera similaridade em 81%","watch"],
+    ["11:40:25","EVIDENCE GUARDIAN","9 evidências e 4 versões validadas","ok"],
+    ["11:40:28","PUBLISHER",published?"ENSO-026 publicado no Event Bus":"ENSO-026 aguardando revisão","watch"],
+  ];
+  const integrations = [
+    ["M1","Torre de Controle","Sinais","Contexto executivo e mudança material","control"],
+    ["M3","Perigos e Modelos","Eventos Compostos","Prior de regime para modelos físicos","hazards"],
+    ["M6","Planejamento","Cenários","Alternativas sazonais e buffers","planning"],
+    ["M7","Riscos e Finanças","Stress Tests","Caudas de perda condicionadas ao ENSO","risk"],
+    ["M8","Emergência","Preparação","Prontidão; nunca ativação automática","emergency"],
+    ["M9","Ambiente e Entorno","Situação Territorial","Pressões ambientais e sociais","environment"],
+    ["COM","Comunicação","Boletins","Mensagem explicativa e não alarmista","communications"],
+    ["M11","Dados e Sensores","Fontes","Saúde das fontes e linhagem","data"],
+    ["M12","Governança","Thresholds","Threshold, versão e evidências","governance"],
+  ];
+  const impacts = [
+    ["Chuva sazonal","↑ viés úmido","64%","Moderada","M3 · M6"],
+    ["Calor e noites quentes","↑ frequência","71%","Moderada","M7 · HSE"],
+    ["Vento e operação portuária","↔ condicionado","46%","Baixa","M4 · M5"],
+    ["Seca e fogo","↓ no verão / ↑ transição","52%","Baixa","M3 · M9"],
+    ["Nível costeiro composto","↑ contexto","57%","Baixa–mod.","M3 · M8"],
+  ];
+  const selected = outlook.find(item=>item.season===season)??outlook[2];
+  const publish = () => {
+    setPublished(true);
+    setPublisherOpen(false);
+    props.onClimateRegimeSignal();
+  };
+  return <div className="climate-view super-enso-view">
+    <article className="panel enso-command-hero">
+      <div className="enso-command-copy">
+        <span>CLIMATE REGIME WATCH · {climateRegimeSignal.id}</span>
+        <h2>Super El Niño <b>· candidato muito forte</b></h2>
+        <p>Vigilância sazonal do Pacífico Equatorial traduzida para contexto local, cenários e decisões em Tubarão.</p>
+        <div className="enso-hero-tags"><Pill tone="alert">CENÁRIO SINTÉTICO</Pill><Pill tone="info">NÃO É PREVISÃO LOCAL DIRETA</Pill><Pill tone={published?"ok":"watch"}>{published?"PUBLICADO":"EM REVISÃO"}</Pill></div>
+      </div>
+      <div className="enso-hero-index"><span>RONI · P50 · {season}</span><strong>{selected.roni}</strong><small>P90 +2,2 °C · pico {climateRegimeSignal.peak}</small><i><b style={{width:`${Math.min(96,52+selected.veryStrong)}%`}} /></i></div>
+      <div className="enso-hero-actions"><button onClick={()=>props.onToast("Evidence pack ENSO-026 · 9 itens · 4 datasets · hash 7fa2 aberto")}>Ver evidências</button><button className="climate-primary" onClick={()=>setPublisherOpen(true)}>{published?"Republicar versão":"Publicar regime"}</button></div>
+    </article>
+
+    <section className="enso-kpi-grid">
+      {[["Prob. El Niño",`${selected.elNino}%`,"consenso multimodelo","alert"],["Prob. muito forte",`${selected.veryStrong}%`,`RONI ≥ +2,0 °C · ${season}`,"critical"],["Acoplamento","ATIVO","SOI · alísios · OLR","ok"],["Concordância","4 / 5","centros sazonais","info"],["Confiança local","76 / 100","teleconexão moderada","watch"],["Próxima revisão","15 AGO","ou mudança ≥ 8 pp","info"]].map(([label,value,note,tone])=><article className={`panel enso-kpi tone-${tone}`} key={label}><span>{label}</span><strong>{value}</strong><small>{note}</small><i /></article>)}
+    </section>
+
+    <section className="enso-ocean-grid">
+      <article className="panel enso-outlook-card">
+        <PanelHead eyebrow="STRENGTH OUTLOOK · RONI" title="Evolução provável do regime" side={<Pill tone="watch">SPRING BARRIER CONSIDERADA</Pill>} />
+        <div className="enso-outlook-chart"><div className="enso-threshold"><span>muito forte · +2,0 °C</span></div>{outlook.map((item,index)=><button className={season===item.season?"active":""} onClick={()=>setSeason(item.season)} key={item.season}><span className="enso-range" style={{height:`${48+item.veryStrong}%`}}><i /><b /></span><strong>{item.roni}</strong><small>{item.season}</small><em>P≥2° {item.veryStrong}%</em>{index<outlook.length-1?<u />:null}</button>)}</div>
+        <footer><span><i className="p50" />P50</span><span><i className="range" />P10–P90</span><b>{scenario}</b></footer>
+      </article>
+      <article className="panel enso-coupling-card">
+        <PanelHead eyebrow="OCEANO + ATMOSFERA" title="Diagnóstico de acoplamento" side={<Pill tone="ok">ACOPLADO</Pill>} />
+        {[['Niño 3.4 / RONI','+1,8 °C',88,'alert'],['Conteúdo de calor 0–300 m','+1,3σ',78,'watch'],['SOI','−1,1σ',73,'info'],['Alísios equatoriais','−18%',69,'info'],['OLR / convecção','−24 W/m²',82,'alert']].map(([label,value,score,tone])=><div className="enso-coupling-row" key={String(label)}><span>{label}</span><i><b className={`tone-${tone}`} style={{width:`${score}%`}} /></i><strong>{value}</strong></div>)}
+        <p>Classificação exige coerência entre oceano e atmosfera; um único índice não publica o regime.</p>
+      </article>
+    </section>
+
+    <section className="enso-map-grid">
+      <article className="panel enso-teleconnection-map">
+        <PanelHead eyebrow="ARCGIS · LIVING ATLAS + SERVIÇOS CLIMÁTICOS" title="Teleconexão global → contexto Tubarão" side={<Pill tone="info">{props.mapStatus}</Pill>} />
+        <div className="enso-layer-tabs">{["SST","Teleconexão","Chuva local","Calor","Costa"].map(item=><button className={layer===item?"active":""} onClick={()=>setLayer(item)} key={item}>{item}</button>)}</div>
+        <div className="enso-spatial-map"><WeatherMap props={props} variable={layer==="SST"?"Anomalia":layer==="Calor"?"Calor":"Seasonal"} hour={3} /><div className="enso-map-flow"><span>Pacífico</span><i /><span>Circulação</span><i /><span>Atlântico Sul</span><i /><strong>Tubarão</strong></div><div className="enso-map-note"><b>{layer}</b><span>camada contextual · atualização 11:39 BRT</span></div></div>
+        <footer><span>● ArcGIS Maps SDK</span><span>● ERSSTv5 / ERA5</span><span>● Living Atlas · ocean & climate</span><button onClick={()=>props.onToast(`Catálogo geoespacial ENSO aberto · camada ${layer} · 6 serviços`) }>Metadados</button></footer>
+      </article>
+      <article className="panel enso-local-translator">
+        <PanelHead eyebrow="LOCAL IMPACT TRANSLATOR" title="O que muda para Tubarão?" side={<Pill tone="watch">CONDICIONAL</Pill>} />
+        <div className="enso-impact-table"><div className="head"><span>Variável</span><span>Sinal</span><span>Prob.</span><span>Conf.</span><span>Consumidor</span></div>{impacts.map(([name,direction,probability,confidence,consumer])=><button key={name} onClick={()=>props.onToast(`${name}: cadeia causal, análogos e incerteza abertos`)}><span><b>{name}</b><small>anomalia sazonal</small></span><strong>{direction}</strong><em>{probability}</em><span>{confidence}</span><small>{consumer}</small></button>)}</div>
+        <p><b>Guardrail científico:</b> o ENSO altera probabilidades de fundo. Alertas operacionais continuam exigindo forecast, observação e modelo de perigo.</p>
+      </article>
+    </section>
+
+    <section className="enso-scenario-grid">
+      <article className="panel enso-scenario-card">
+        <PanelHead eyebrow="SCENARIO ORCHESTRATOR" title="Três futuros plausíveis" side={<Pill tone="info">NÃO DETERMINÍSTICO</Pill>} />
+        <div className="enso-scenario-list">{[["P10 · MODERADO","+1,3 °C","18%","Pouca amplificação local"],["P50 · MUITO FORTE","+1,8 °C","54%","Viés úmido e calor material"],["P90 · EXTREMO","+2,2 °C","28%","Caudas compostas ampliadas"]].map(([name,index,weight,meaning])=><button className={scenario===name?"active":""} onClick={()=>setScenario(name)} key={name}><span>{weight}</span><strong>{name}</strong><b>{index}</b><small>{meaning}</small><i /></button>)}</div>
+        <footer><span>Horizonte SON 2026 → MAM 2027</span><button onClick={()=>props.onOpenModule("planning","Cenários")}>Simular no Planejamento →</button></footer>
+      </article>
+      <article className="panel enso-analogs-card">
+        <PanelHead eyebrow="ANALOG FINDER" title="Eventos históricos comparáveis" side={<Pill tone="watch">NÃO SÃO PREVISÕES</Pill>} />
+        {[['1982–83','74%','calor + chuva intensa'],['1997–98','81%','forte acoplamento e costa'],['2015–16','77%','recordes térmicos']].map(([year,similarity,lesson])=><button className={selectedAnalog===year?"active":""} onClick={()=>setSelectedAnalog(year)} key={year}><span>{year}</span><i><b style={{width:similarity}} /></i><strong>{similarity}</strong><small>{lesson}</small></button>)}
+        <p>Analogia pondera Pacífico, Atlântico, fase da PDO, sazonalidade e resposta observada no Sudeste.</p>
+      </article>
+    </section>
+
+    <section className="enso-contract-grid">
+      <article className="panel enso-contract-card">
+        <PanelHead eyebrow="CONTRATO INTEROPERÁVEL" title={`ClimateRegimeSignal · ${climateRegimeSignal.id}`} side={<Pill tone={published?"ok":"watch"}>{published?"PUBLISHED":"DRAFT"}</Pill>} />
+        <div className="enso-contract-code">{Object.entries(climateRegimeSignal).map(([key,value])=><div key={key}><span>{key}</span><strong>{value}</strong></div>)}</div>
+        <div className="enso-contract-flow">{["M11 · Data Fabric","M2 · Climate","Event Bus","M3 / M6 / M7","M1 · Torre"].map((item,index)=><span key={item}>{item}{index<4?<b>→</b>:null}</span>)}</div>
+      </article>
+      <article className="panel enso-agent-live">
+        <PanelHead eyebrow="AGENTES · EVENT STREAM" title="Operação ENSO em tempo real" side={<button onClick={props.onAgents}>Central de agentes →</button>} />
+        {agents.map(([time,agent,action,tone],index)=><button key={`${time}-${agent}`} onClick={()=>props.onToast(`${agent}: trace ENSO-${2420+index} e evidências abertos`)}><time>{time}</time><i className={`tone-${tone}`}>{index===agents.length-1&&!published?"…":"✓"}</i><span><b>{agent}</b><small>{action}</small></span><em>trace #{2420+index}</em></button>)}
+      </article>
+    </section>
+
+    <article className="panel enso-integration-hub">
+      <PanelHead eyebrow="PLATAFORMA INTEGRADA" title="Quem consome o ClimateRegimeSignal?" side={<Pill tone="ok">9 ROTAS ATIVAS</Pill>} />
+      <div>{integrations.map(([code,title,target,note,module])=><button onClick={()=>props.onOpenModule(module,target)} key={code}><span>{code}</span><strong>{title}</strong><b>{target}</b><small>{note}</small><i>ABRIR →</i></button>)}</div>
+    </article>
+
+    {publisherOpen?<form className="panel enso-publisher-form" onSubmit={event=>{event.preventDefault();publish();}}>
+      <PanelHead eyebrow="PUBLICAÇÃO GOVERNADA" title="Publicar ClimateRegimeSignal ENSO-026" side={<button type="button" onClick={()=>setPublisherOpen(false)}>×</button>} />
+      <div><label>Classificação<select defaultValue="VERY_STRONG_CANDIDATE"><option>VERY_STRONG_CANDIDATE</option><option>STRONG</option><option>MODERATE</option></select></label><label>Índice primário<select defaultValue="RONI"><option>RONI</option><option>ONI · referência histórica</option></select></label><label>Validade<select defaultValue="SON 2026 – MAM 2027"><option>SON 2026 – MAM 2027</option></select></label><label>Confiança local<select defaultValue="MODERADA"><option>MODERADA</option><option>BAIXA</option><option>ALTA</option></select></label></div>
+      <label className="enso-publisher-note">Nota técnica<textarea defaultValue="Cenário sintético: candidato a El Niño muito forte. Rótulo operacional configurável; não constitui alerta local nem ordem operacional." /></label>
+      <div className="enso-publisher-checks"><label><input type="checkbox" defaultChecked /> Evidências versionadas</label><label><input type="checkbox" defaultChecked /> Incerteza explícita</label><label><input type="checkbox" defaultChecked /> Revisão científica</label><label><input type="checkbox" defaultChecked /> Guardrail sem ativação automática</label></div>
+      <footer><span>Destinos: M1 · M3 · M6 · M7 · M8 · M9 · COM · M11 · M12</span><button type="button" onClick={()=>setPublisherOpen(false)}>Cancelar</button><button className="climate-primary" type="submit">Validar e publicar</button></footer>
+    </form>:null}
+  </div>;
 }
 
 function Climatology() {
@@ -254,6 +405,7 @@ export function ClimateModule(props: Props) {
     if (props.subview === "Subseasonal") return <Subseasonal {...props} />;
     if (props.subview === "Seasonal") return <Seasonal {...props} />;
     if (props.subview === "Drivers Climáticos") return <Drivers {...props} />;
+    if (props.subview === "Super El Niño · ENSO") return <SuperElNino {...props} />;
     if (props.subview === "Climatologia") return <Climatology />;
     if (props.subview === "Anomalias") return <Anomalies {...props} />;
     if (props.subview === "Projeções") return <Projections {...props} />;

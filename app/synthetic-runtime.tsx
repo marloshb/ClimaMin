@@ -106,6 +106,29 @@ export const syntheticRuntimeProfiles: Record<string, RuntimeProfile> = {
   },
 };
 
+const ensoRuntimeBindings: Record<string, RuntimeEvent> = {
+  control: {agent:"PULSO",action:"incorporou ENSO-026 ao contexto executivo sem elevar alerta",object:"ENSO-026",tone:"info"},
+  climate: {agent:"ENSO MONITOR",action:"consolidou RONI, acoplamento e cenário NDJ",object:"ENSO-026",tone:"watch"},
+  hazards: {agent:"INPUT GUARDIAN",action:"aplicou ENSO-026 como prior de regime, não como perigo",object:"ENSO-026",tone:"info"},
+  twin: {agent:"TWIN ORCHESTRATOR",action:"anotou horizonte sazonal ENSO nos ativos sensíveis",object:"ENSO-026",tone:"info"},
+  chain: {agent:"CHAIN ORCHESTRATOR",action:"testou buffers sazonais condicionados ao ENSO",object:"ENSO-026",tone:"watch"},
+  planning: {agent:"SCENARIO",action:"gerou ramo sazonal P10/P50/P90 a partir do ENSO",object:"ENSO-026",tone:"info"},
+  risk: {agent:"SENSITIVITY",action:"condicionou caudas de perda ao regime ENSO",object:"ENSO-026",tone:"watch"},
+  emergency: {agent:"EARLY WARNING",action:"atualizou prontidão sazonal sem ativação automática",object:"ENSO-026",tone:"info"},
+  environment: {agent:"TERRITORIAL ORCHESTRATOR",action:"cruzou pressões sazonais com receptores sensíveis",object:"ENSO-026",tone:"info"},
+  communications: {agent:"MESSAGE COMPOSER",action:"preparou boletim ENSO explicativo e não alarmista",object:"ENSO-026",tone:"ok"},
+  data: {agent:"DATA GUARDIAN",action:"validou linhagem RONI, ERSSTv5 e ensemble sazonal",object:"ENSO-026",tone:"ok"},
+  governance: {agent:"MODEL GUARDIAN",action:"validou threshold e rótulo VERY_STRONG_CANDIDATE",object:"ENSO-026",tone:"watch"},
+};
+
+Object.entries(ensoRuntimeBindings).forEach(([key,event]) => {
+  const profile = syntheticRuntimeProfiles[key];
+  if (!profile) return;
+  profile.events = [event,...profile.events];
+  profile.objects = ["ENSO-026 · ClimateRegimeSignal",...profile.objects];
+  profile.sources = ["ClimateRegimeSignal / Event Bus",...profile.sources];
+});
+
 const statuses: Array<[string,Tone]> = [["EXECUTANDO","info"],["VALIDADO","ok"],["ATENÇÃO","watch"],["AÇÃO REQUERIDA","alert"],["PUBLICADO","ok"],["AGUARDANDO HUMANO","watch"]];
 
 function clockMinus(clock: string, seconds: number) {
